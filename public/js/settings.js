@@ -347,58 +347,30 @@ function applyFontSize(size) {
    LOAD APPEARANCE
 ══════════════════════════════ */
 const loadAppearance = async () => {
-
   try {
-
     const data = await api('/settings/appearance');
-
     if (!data) return;
-
-    /* Accent Colour */
+ 
+    /* Populate form controls */
     const accentColour = data.accentColour || 'purple';
-
+    const fontSize     = data.fontSize     || 'medium';
+    const darkMode     = data.darkMode     === true;
+ 
     document.querySelectorAll('.colour-btn').forEach(btn => {
-
       const active = btn.dataset.colour === accentColour;
-
       btn.classList.toggle('active', active);
-
       btn.setAttribute('aria-pressed', String(active));
-
     });
-
-    applyThemeColour(accentColour);
-
-    /* Font Size */
-    const fontSize = data.fontSize || 'medium';
-
+ 
     document.getElementById('fontSizeSelect').value = fontSize;
-
-    applyFontSize(fontSize);
-
-    /* Dark Mode */
-    const darkMode = data.darkMode === true;
-
-    document.getElementById('darkMode').checked = darkMode;
-
-    document.body.classList.toggle('dark-mode', darkMode);
-
+    document.getElementById('darkMode').checked     = darkMode;
+ 
+    /* ← NEW: single call does everything */
+    window.StudySyncTheme.apply({ accentColour, fontSize, darkMode });
+ 
   } catch {
-
-    // fallback from localStorage
-
-    const local = JSON.parse(localStorage.getItem('ss_appearance'));
-
-    if (!local) return;
-
-    applyThemeColour(local.accentColour || 'purple');
-
-    applyFontSize(local.fontSize || 'medium');
-
-    document.body.classList.toggle('dark-mode', local.darkMode);
-
+    /* theme.js already applied the localStorage fallback at boot */
   }
-
 };
 
   /* ══════════════════════════════
@@ -467,25 +439,28 @@ const applyThemeColour = (colour) => {
      SAVE APPEARANCE
   ══════════════════════════════ */
   document.getElementById('saveAppearance').addEventListener('click', async () => {
-    const btn          = document.getElementById('saveAppearance');
-    const activeColour = document.querySelector('.colour-btn.active')?.dataset.colour || 'purple';
-    const fontSize     = document.getElementById('fontSizeSelect').value;
-
-    setLoading(btn, true);
-    try {
-      await api('/settings/appearance', {
-        method: 'PUT',
-        body: JSON.stringify({ accentColour: activeColour, fontSize }),
-      });
-      // Save locally
-      localStorage.setItem('ss_appearance', JSON.stringify({ accentColour: activeColour, fontSize }));
-      showToast('Appearance saved.');
-    } catch (err) {
-      showToast(err.message || 'Failed to save appearance.', 'error');
-    } finally {
-      setLoading(btn, false);
-    }
-  });
+  const btn          = document.getElementById('saveAppearance');
+  const activeColour = document.querySelector('.colour-btn.active')?.dataset.colour || 'purple';
+  const fontSize     = document.getElementById('fontSizeSelect').value;
+  const darkMode     = document.getElementById('darkMode').checked;
+ 
+  setLoading(btn, true);
+  try {
+    await api('/settings/appearance', {
+      method: 'PUT',
+      body: JSON.stringify({ accentColour: activeColour, fontSize, darkMode }),
+    });
+ 
+    /* ← NEW: persist + apply globally */
+    window.StudySyncTheme.save({ accentColour: activeColour, fontSize, darkMode });
+ 
+    showToast('Appearance saved.');
+  } catch (err) {
+    showToast(err.message || 'Failed to save appearance.', 'error');
+  } finally {
+    setLoading(btn, false);
+  }
+});
 
   /* ══════════════════════════════
      CONFIRM MODAL
