@@ -108,15 +108,28 @@ const getAppearance = asyncHandler(async (req, res) => {
 /* ── PUT appearance ── */
 const updateAppearance = asyncHandler(async (req, res) => {
   const { accentColour, fontSize, darkMode } = req.body;
+
   await query(
-    `INSERT INTO user_settings (user_id, accent_colour, font_size, dark_mode)
-     VALUES ($1,$2,$3,$4)
-     ON CONFLICT (user_id) DO UPDATE SET
-       accent_colour = COALESCE($2, user_settings.accent_colour),
-       font_size     = COALESCE($3, user_settings.font_size),
-       dark_mode     = COALESCE($4, user_settings.dark_mode)`,
-    [req.user.id, accentColour || null, fontSize || null, darkMode ?? null]
+    `INSERT INTO user_settings (
+      user_id,
+      accent_colour,
+      font_size,
+      dark_mode
+    )
+    VALUES ($1,$2,$3,$4)
+    ON CONFLICT (user_id) DO UPDATE SET
+      accent_colour = COALESCE($2, user_settings.accent_colour),
+      font_size     = COALESCE($3, user_settings.font_size),
+      dark_mode     = COALESCE($4, user_settings.dark_mode),
+      updated_at    = NOW()`,
+    [
+      req.user.id,
+      accentColour ?? 'purple',
+      fontSize ?? 'medium',
+      darkMode ?? false
+    ]
   );
+
   res.json({ message: 'Appearance saved.' });
 });
 
