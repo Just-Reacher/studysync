@@ -329,42 +329,139 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ══════════════════════════════
-     LOAD APPEARANCE
-  ══════════════════════════════ */
-  const loadAppearance = async () => {
-    try {
-      const data = await api('/settings/appearance');
-      if (!data) return;
+   APPLY FONT SIZE
+══════════════════════════════ */
+function applyFontSize(size) {
 
-      if (data.accentColour) {
-        document.querySelectorAll('.colour-btn').forEach(btn => {
-          const active = btn.dataset.colour === data.accentColour;
-          btn.classList.toggle('active', active);
-          btn.setAttribute('aria-pressed', String(active));
-        });
-      }
-
-      if (data.fontSize) {
-        document.getElementById('fontSizeSelect').value = data.fontSize;
-      }
-    } catch {
-      // Use defaults
-    }
+  const sizes = {
+    small: '14px',
+    medium: '16px',
+    large: '18px'
   };
 
-  /* ══════════════════════════════
-     THEME COLOUR BUTTONS
-  ══════════════════════════════ */
-  document.querySelectorAll('.colour-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.colour-btn').forEach(b => {
-        b.classList.remove('active');
-        b.setAttribute('aria-pressed', 'false');
-      });
-      btn.classList.add('active');
-      btn.setAttribute('aria-pressed', 'true');
+  document.documentElement.style.fontSize =
+    sizes[size] || '16px';
+}
+
+ /* ══════════════════════════════
+   LOAD APPEARANCE
+══════════════════════════════ */
+const loadAppearance = async () => {
+
+  try {
+
+    const data = await api('/settings/appearance');
+
+    if (!data) return;
+
+    /* Accent Colour */
+    const accentColour = data.accentColour || 'purple';
+
+    document.querySelectorAll('.colour-btn').forEach(btn => {
+
+      const active = btn.dataset.colour === accentColour;
+
+      btn.classList.toggle('active', active);
+
+      btn.setAttribute('aria-pressed', String(active));
+
     });
+
+    applyThemeColour(accentColour);
+
+    /* Font Size */
+    const fontSize = data.fontSize || 'medium';
+
+    document.getElementById('fontSizeSelect').value = fontSize;
+
+    applyFontSize(fontSize);
+
+    /* Dark Mode */
+    const darkMode = data.darkMode === true;
+
+    document.getElementById('darkMode').checked = darkMode;
+
+    document.body.classList.toggle('dark-mode', darkMode);
+
+  } catch {
+
+    // fallback from localStorage
+
+    const local = JSON.parse(localStorage.getItem('ss_appearance'));
+
+    if (!local) return;
+
+    applyThemeColour(local.accentColour || 'purple');
+
+    applyFontSize(local.fontSize || 'medium');
+
+    document.body.classList.toggle('dark-mode', local.darkMode);
+
+  }
+
+};
+
+  /* ══════════════════════════════
+   THEME COLOUR BUTTONS
+══════════════════════════════ */
+const colourMap = {
+  purple: '#5B5BD6',
+  teal:   '#22C9A5',
+  rose:   '#E05475',
+  amber:  '#F59E0B',
+  indigo: '#4F46E5',
+  green:  '#16A34A'
+};
+
+document.querySelectorAll('.colour-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+
+    // active button UI
+    document.querySelectorAll('.colour-btn').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-pressed', 'false');
+    });
+
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
+
+    // apply colour instantly
+    const selected = btn.dataset.colour;
+    const colour = colourMap[selected];
+
+    document.documentElement.style.setProperty('--primary', colour);
   });
+});
+
+/* ══════════════════════════════
+   FONT SIZE LIVE PREVIEW
+══════════════════════════════ */
+document.getElementById('fontSizeSelect')
+  .addEventListener('change', (e) => {
+    applyFontSize(e.target.value);
+  });
+
+  /* ══════════════════════════════
+   APPLY THEME COLOUR
+══════════════════════════════ */
+const applyThemeColour = (colour) => {
+
+  const root = document.documentElement;
+
+  const themes = {
+
+    purple: '#5B5BD6',
+    teal: '#22C9A5',
+    rose: '#E05475',
+    amber: '#F59E0B',
+    indigo: '#4F46E5',
+    green: '#16A34A'
+
+  };
+
+  root.style.setProperty('--primary', themes[colour] || themes.purple);
+
+};
 
   /* ══════════════════════════════
      SAVE APPEARANCE
