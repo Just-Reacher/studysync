@@ -34,9 +34,9 @@ pool.on('error', (err) => {
 
 const connectDB = async () => {
   try {
-    const client = await pool.connect();
+    await pool.query('SELECT NOW()');
 
-    console.log(`✅ PostgreSQL connected — ${new Date().toString()}`);
+console.log(`✅ PostgreSQL connected — ${new Date().toString()}`);
 
     client.release();
   } catch (err) {
