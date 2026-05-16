@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudySync — Quizzes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" type="image/png" href="/images/favicon.ico">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #5B5BD6; --primary-soft: #7C7CF0; --primary-pale: #EEEEFF;
+      --accent: #22C9A5; --accent-pale: #E0FAF4;
+      --text-dark: #1A1A2E; --text-mid: #4A4A72; --text-light: #8888AA;
+      --bg: #F7F7FF; --bg-card: #FFFFFF;
+      --border: rgba(91,91,214,0.12); --border-input: rgba(91,91,214,0.18);
+      --shadow-sm: 0 2px 12px rgba(91,91,214,0.08); --shadow-md: 0 8px 32px rgba(91,91,214,0.12);
+      --shadow-lg: 0 24px 64px rgba(91,91,214,0.16);
+      --sidebar-w: 240px; --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px; --radius-xl: 32px;
+      --error: #E05475; --success: #22C9A5;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-dark); min-height: 100vh; display: flex; overflow-x: hidden; }
+
+    .bg-blob { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; opacity: 0.35; }
+    .bg-blob--1 { width: 500px; height: 500px; background: radial-gradient(circle, #c5c5fa 0%, transparent 70%); top: -160px; left: -120px; }
+    .bg-blob--2 { width: 360px; height: 360px; background: radial-gradient(circle, #a0f5e0 0%, transparent 70%); bottom: 40px; right: -80px; }
+
+    /* ── SIDEBAR (shared) ── */
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--bg-card); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s ease; }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 24px 20px 20px; text-decoration: none; border-bottom: 1px solid var(--border); }
+    .sidebar-logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); border-radius: 9px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(91,91,214,0.3); }
+    .sidebar-logo-icon i { color: #fff; font-size: 15px; }
+    .sidebar-logo-text { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--text-dark); }
+    .sidebar-logo-text span { color: var(--primary); }
+    .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); padding: 10px 10px 6px; margin-top: 6px; }
+    .nav-item { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: var(--radius-sm); text-decoration: none; font-size: 14px; color: var(--text-mid); transition: all 0.2s; position: relative; }
+    .nav-item i { width: 18px; text-align: center; font-size: 15px; color: var(--text-light); transition: color 0.2s; }
+    .nav-item:hover, .nav-item.active { background: var(--primary-pale); color: var(--primary); }
+    .nav-item:hover i, .nav-item.active i { color: var(--primary); }
+    .nav-item.active { font-weight: 500; }
+    .nav-item.active::before { content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 3px; background: var(--primary); border-radius: 0 3px 3px 0; }
+    .sidebar-footer { padding: 16px 12px; border-top: 1px solid var(--border); }
+    .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: background 0.2s; }
+    .sidebar-user:hover { background: var(--primary-pale); }
+    .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #fff; flex-shrink: 0; overflow: hidden; }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 13px; font-weight: 500; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 11px; color: var(--text-light); }
+    .logout-btn { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 14px; padding: 4px; transition: color 0.2s; }
+    .logout-btn:hover { color: var(--error); }
+
+    /* ── MAIN ── */
+    .main-content { margin-left: var(--sidebar-w); flex: 1; position: relative; z-index: 1; min-height: 100vh; }
+    .topbar { position: sticky; top: 0; background: rgba(247,247,255,0.88); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: 0 32px; height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; z-index: 40; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .menu-toggle { display: none; background: none; border: none; color: var(--text-dark); font-size: 18px; cursor: pointer; padding: 6px; }
+    .topbar-title { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--text-dark); letter-spacing: -0.3px; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .icon-btn { width: 38px; height: 38px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-mid); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; transition: all 0.2s; text-decoration: none; }
+    .icon-btn:hover { background: var(--primary-pale); color: var(--primary); }
+    .page-body { padding: 32px; max-width: 1100px; }
+
+    /* ── VIEWS ── */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ── QUIZ LIST VIEW ── */
+    .page-header { margin-bottom: 28px; }
+    .page-title { font-family: 'Instrument Serif', serif; font-size: clamp(26px,3vw,36px); color: var(--text-dark); letter-spacing: -0.5px; margin-bottom: 6px; }
+    .page-sub { font-size: 14px; color: var(--text-light); }
+
+    /* Filters */
+    .filter-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+    .filter-select { padding: 9px 14px; border: 1px solid var(--border-input); border-radius: var(--radius-sm); background: var(--bg-card); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text-dark); outline: none; cursor: pointer; transition: border-color 0.2s; }
+    .filter-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91,91,214,0.1); }
+    .search-wrap { flex: 1; min-width: 200px; position: relative; }
+    .search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 13px; }
+    .search-input { width: 100%; padding: 9px 12px 9px 36px; border: 1px solid var(--border-input); border-radius: var(--radius-sm); background: var(--bg-card); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text-dark); outline: none; transition: border-color 0.2s; }
+    .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91,91,214,0.1); }
+    .search-input::placeholder { color: var(--text-light); }
+
+    /* Quiz grid */
+    .quiz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+    .quiz-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 22px; box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.25s ease; display: flex; flex-direction: column; gap: 14px; }
+    .quiz-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: rgba(91,91,214,0.2); }
+
+    .quiz-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .quiz-subj-icon { width: 44px; height: 44px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
+    .quiz-card-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+    .badge { font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
+    .badge-level { background: var(--primary-pale); color: var(--primary); }
+    .badge-timed { background: #FFF5E0; color: #D97706; }
+    .badge-done  { background: var(--accent-pale); color: #0E9A7D; }
+
+    .quiz-card-title { font-size: 15px; font-weight: 500; color: var(--text-dark); line-height: 1.4; }
+    .quiz-card-subject { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+
+    .quiz-card-meta { display: flex; align-items: center; gap: 14px; }
+    .quiz-meta-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-light); }
+    .quiz-meta-item i { font-size: 11px; }
+
+    .quiz-card-score { display: flex; flex-direction: column; gap: 5px; }
+    .score-label { font-size: 11px; color: var(--text-light); }
+    .score-bar-wrap { height: 5px; background: var(--primary-pale); border-radius: 99px; overflow: hidden; }
+    .score-bar { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: width 0.8s ease; }
+    .score-val { font-size: 12px; color: var(--text-mid); font-weight: 500; }
+
+    .btn-start { width: 100%; padding: 11px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); color: #fff; border: none; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 14px rgba(91,91,214,0.28); }
+    .btn-start:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(91,91,214,0.38); }
+
+    /* ── QUIZ TAKING VIEW ── */
+    .quiz-taking { max-width: 700px; margin: 0 auto; }
+
+    .quiz-taking-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 12px; }
+    .back-btn { display: flex; align-items: center; gap: 7px; background: none; border: none; color: var(--text-mid); font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; padding: 0; transition: color 0.2s; }
+    .back-btn:hover { color: var(--primary); }
+
+    .quiz-timer { display: flex; align-items: center; gap: 7px; padding: 8px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 99px; font-size: 14px; font-weight: 500; color: var(--text-dark); box-shadow: var(--shadow-sm); }
+    .quiz-timer i { color: var(--primary); }
+    .quiz-timer.warning { border-color: #F59E0B; color: #D97706; }
+    .quiz-timer.danger  { border-color: var(--error); color: var(--error); animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+
+    .quiz-progress-wrap { margin-bottom: 24px; }
+    .quiz-progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-light); margin-bottom: 8px; }
+    .quiz-progress-bar-wrap { height: 6px; background: var(--primary-pale); border-radius: 99px; overflow: hidden; }
+    .quiz-progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 99px; transition: width 0.4s ease; }
+
+    .question-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-sm); margin-bottom: 20px; animation: fadeQ 0.3s ease; }
+    @keyframes fadeQ { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+    .question-number { font-size: 12px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+    .question-text { font-family: 'Instrument Serif', serif; font-size: clamp(18px,2.5vw,22px); color: var(--text-dark); line-height: 1.45; margin-bottom: 28px; }
+
+    .options-list { display: flex; flex-direction: column; gap: 10px; }
+    .option-btn { display: flex; align-items: center; gap: 14px; padding: 14px 18px; background: var(--bg); border: 1.5px solid var(--border-input); border-radius: var(--radius-sm); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-dark); text-align: left; transition: all 0.2s; width: 100%; }
+    .option-btn:hover:not(:disabled) { background: var(--primary-pale); border-color: rgba(91,91,214,0.3); color: var(--primary); }
+    .option-btn.selected { background: var(--primary-pale); border-color: var(--primary); color: var(--primary); }
+    .option-btn.correct  { background: var(--accent-pale); border-color: var(--accent); color: #0E9A7D; }
+    .option-btn.wrong    { background: #FFF0F3; border-color: var(--error); color: var(--error); }
+    .option-btn:disabled { cursor: default; }
+
+    .option-letter { width: 28px; height: 28px; border-radius: 7px; background: rgba(91,91,214,0.1); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; transition: all 0.2s; }
+    .option-btn.selected .option-letter { background: var(--primary); color: #fff; }
+    .option-btn.correct .option-letter  { background: var(--accent); color: #fff; }
+    .option-btn.wrong .option-letter    { background: var(--error); color: #fff; }
+
+    .option-text { flex: 1; }
+
+    /* Explanation */
+    .explanation-box { margin-top: 16px; padding: 14px 18px; background: var(--accent-pale); border: 1px solid rgba(34,201,165,0.25); border-radius: var(--radius-sm); font-size: 13px; color: #0A6652; line-height: 1.6; display: none; animation: fadeQ 0.3s ease; }
+    .explanation-box.show { display: block; }
+    .explanation-box strong { display: block; margin-bottom: 4px; }
+
+    .quiz-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .btn-nav { padding: 11px 24px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-nav-outline { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-mid); }
+    .btn-nav-outline:hover { background: var(--primary-pale); color: var(--primary); }
+    .btn-nav-primary { background: linear-gradient(135deg, var(--primary), var(--primary-soft)); color: #fff; box-shadow: 0 4px 14px rgba(91,91,214,0.28); }
+    .btn-nav-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(91,91,214,0.38); }
+    .btn-nav-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ── SCORE MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(26,26,46,0.4); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .score-modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 44px 40px; max-width: 440px; width: 100%; box-shadow: var(--shadow-lg); text-align: center; animation: modalIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes modalIn { from { opacity:0; transform:scale(0.88); } to { opacity:1; transform:scale(1); } }
+
+    .score-emoji { font-size: 56px; margin-bottom: 12px; line-height: 1; }
+    .score-title { font-family: 'Instrument Serif', serif; font-size: 28px; color: var(--text-dark); letter-spacing: -0.4px; margin-bottom: 6px; }
+    .score-sub { font-size: 14px; color: var(--text-light); margin-bottom: 24px; }
+    .score-big { font-family: 'Instrument Serif', serif; font-size: 56px; color: var(--primary); line-height: 1; margin-bottom: 4px; }
+    .score-fraction { font-size: 14px; color: var(--text-light); margin-bottom: 28px; }
+
+    .score-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 28px; }
+    .score-stat { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 10px; }
+    .score-stat-val { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--text-dark); }
+    .score-stat-label { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+    .score-modal-btns { display: flex; flex-direction: column; gap: 10px; }
+    .btn-review { width: 100%; padding: 13px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); color: #fff; border: none; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 14px rgba(91,91,214,0.28); transition: all 0.2s; }
+    .btn-review:hover { transform: translateY(-1px); }
+    .btn-back-quiz { width: 100%; padding: 12px; background: var(--primary-pale); color: var(--primary); border: none; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .btn-back-quiz:hover { background: #ddddf8; }
+
+    /* Skeleton / empty */
+    .skeleton { background: linear-gradient(90deg, var(--primary-pale) 25%, #e8e8ff 50%, var(--primary-pale) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; }
+    @keyframes shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
+    .empty-state { text-align: center; padding: 48px 24px; color: var(--text-light); }
+    .empty-state i { font-size: 32px; margin-bottom: 12px; display: block; opacity: 0.35; }
+    .empty-state p { font-size: 14px; }
+
+    /* Sidebar overlay */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(26,26,46,0.3); z-index: 49; backdrop-filter: blur(2px); }
+    .sidebar-overlay.show { display: block; }
+
+    @media (max-width: 800px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } .menu-toggle { display: block; } .topbar { padding: 0 20px; } .page-body { padding: 20px; } }
+    @media (max-width: 520px) { .score-modal { padding: 32px 22px; } .score-stats { grid-template-columns: repeat(3,1fr); } .filter-bar { flex-direction: column; align-items: stretch; } }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+<body>
+  <div class="bg-blob bg-blob--1" aria-hidden="true"></div>
+  <div class="bg-blob bg-blob--2" aria-hidden="true"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <a href="dashboard.html" class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+      <span class="sidebar-logo-text">Study<span>Sync</span></span>
+    </a>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="quizzes.html"   class="nav-item active" aria-current="page"><i class="fa-solid fa-brain"></i> Quizzes</a>
+      <a href="notes.html"     class="nav-item"><i class="fa-solid fa-book-open"></i> Notes</a>
+      <a href="tasks.html"     class="nav-item"><i class="fa-solid fa-list-check"></i> Tasks</a>
+      <span class="nav-section-label">Track</span>
+      <a href="progress.html"  class="nav-item"><i class="fa-solid fa-chart-line"></i> Progress</a>
+      <a href="calendar.html"  class="nav-item"><i class="fa-solid fa-calendar-days"></i> Calendar</a>
+      <a href="reminders.html" class="nav-item"><i class="fa-solid fa-bell"></i> Reminders</a>
+      <span class="nav-section-label">Focus</span>
+      <a href="pomodoro.html"  class="nav-item"><i class="fa-solid fa-clock"></i> Pomodoro</a>
+      <span class="nav-section-label">Account</span>
+      <a href="settings.html"  class="nav-item"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="sidebarAvatar"></div>
+        <div class="user-info">
+          <div class="user-name" id="sidebarUserName">Loading…</div>
+          <div class="user-role">Student</div>
+        </div>
+        <button class="logout-btn" id="logoutBtn" aria-label="Log out" title="Log out">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar"><i class="fa-solid fa-bars"></i></button>
+        <h1 class="topbar-title" id="topbarTitle">Quizzes</h1>
+      </div>
+      <div class="topbar-right">
+        <a href="dashboard.html" class="icon-btn" aria-label="Dashboard"><i class="fa-solid fa-house"></i></a>
+        <a href="settings.html"  class="icon-btn" aria-label="Settings"><i class="fa-solid fa-gear"></i></a>
+      </div>
+    </header>
+
+    <div class="page-body">
+
+      <!-- ════ VIEW: QUIZ LIST ════ -->
+      <div class="view active" id="viewList">
+        <div class="page-header">
+          <h2 class="page-title">Quiz Practice</h2>
+          <p class="page-sub">Pick a subject and test your knowledge.</p>
+        </div>
+
+        <div class="filter-bar">
+          <div class="search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="search" class="search-input" id="searchInput" placeholder="Search quizzes…" aria-label="Search quizzes" />
+          </div>
+          <select class="filter-select" id="filterSubject" aria-label="Filter by subject">
+            <option value="">All Subjects</option>
+            <option value="Mathematics">Mathematics</option>
+            <option value="English">English</option>
+            <option value="ICT">ICT</option>
+            <option value="Integrated Science">Integrated Science</option>
+            <option value="Social Studies">Social Studies</option>
+            <option value="Elective Physics">Elective Physics</option>
+            <option value="Elective Biology">Elective Biology</option>
+            <option value="Elective Chemistry">Elective Chemistry</option>
+            <option value="Elective PEH">Elective PEH</option>
+            <option value="Food and Nutrition">Food and Nutrition</option>
+          </select>
+          <select class="filter-select" id="filterLevel" aria-label="Filter by level">
+            <option value="">All Levels</option>
+            <option value="SHS1">SHS 1</option>
+            <option value="SHS2">SHS 2</option>
+            <option value="SHS3">SHS 3</option>
+          </select>
+        </div>
+
+        <div class="quiz-grid" id="quizGrid" aria-live="polite"></div>
+      </div>
+
+      <!-- ════ VIEW: QUIZ TAKING ════ -->
+      <div class="view" id="viewTaking">
+        <div class="quiz-taking">
+          <div class="quiz-taking-header">
+            <button class="back-btn" id="backToListBtn">
+              <i class="fa-solid fa-arrow-left"></i> All Quizzes
+            </button>
+            <div class="quiz-timer" id="quizTimer" aria-live="polite" aria-atomic="true">
+              <i class="fa-regular fa-clock"></i>
+              <span id="timerDisplay">--:--</span>
+            </div>
+          </div>
+
+          <div class="quiz-progress-wrap">
+            <div class="quiz-progress-label">
+              <span id="progressLabel">Question 1 of —</span>
+              <span id="progressPct">0%</span>
+            </div>
+            <div class="quiz-progress-bar-wrap">
+              <div class="quiz-progress-bar" id="progressBar" style="width:0%"></div>
+            </div>
+          </div>
+
+          <div class="question-card" id="questionCard">
+            <div class="question-number" id="questionNumber"></div>
+            <p class="question-text" id="questionText"></p>
+            <div class="options-list" id="optionsList"></div>
+            <div class="explanation-box" id="explanationBox">
+              <strong>Explanation</strong>
+              <span id="explanationText"></span>
+            </div>
+          </div>
+
+          <div class="quiz-nav">
+            <button class="btn-nav btn-nav-outline" id="btnPrev">
+              <i class="fa-solid fa-arrow-left"></i> Previous
+            </button>
+            <button class="btn-nav btn-nav-primary" id="btnNext" disabled>
+              Next <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.page-body -->
+  </div><!-- /.main-content -->
+
+  <!-- SCORE MODAL -->
+  <div class="modal-overlay" id="scoreModal" role="dialog" aria-modal="true" aria-labelledby="scoreTitle">
+    <div class="score-modal">
+      <div class="score-emoji" id="scoreEmoji"></div>
+      <h2 class="score-title" id="scoreTitle">Quiz Complete!</h2>
+      <p class="score-sub" id="scoreSub"></p>
+      <div class="score-big" id="scorePct"></div>
+      <div class="score-fraction" id="scoreFraction"></div>
+      <div class="score-stats">
+        <div class="score-stat">
+          <div class="score-stat-val" id="statCorrect"></div>
+          <div class="score-stat-label">Correct</div>
+        </div>
+        <div class="score-stat">
+          <div class="score-stat-val" id="statWrong"></div>
+          <div class="score-stat-label">Wrong</div>
+        </div>
+        <div class="score-stat">
+          <div class="score-stat-val" id="statTime"></div>
+          <div class="score-stat-label">Time</div>
+        </div>
+      </div>
+      <div class="score-modal-btns">
+        <button class="btn-review" id="btnReview">Review Answers</button>
+        <button class="btn-back-quiz" id="btnBackToQuizzes">Back to Quizzes</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/quizzes.js"></script>
+</body>
+</html>

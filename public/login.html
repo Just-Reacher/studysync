@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudySync — Sign In</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" type="image/png" href="/images/favicon.png">
+
+  <style>
+    *, *::before, *::after {
+      margin: 0; padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary:       #5B5BD6;
+      --primary-soft:  #7C7CF0;
+      --primary-pale:  #EEEEFF;
+      --accent:        #22C9A5;
+      --accent-pale:   #E0FAF4;
+      --text-dark:     #1A1A2E;
+      --text-mid:      #4A4A72;
+      --text-light:    #8888AA;
+      --bg:            #F7F7FF;
+      --bg-card:       #FFFFFF;
+      --border:        rgba(91, 91, 214, 0.12);
+      --border-input:  rgba(91, 91, 214, 0.18);
+      --shadow-sm:     0 2px 12px rgba(91, 91, 214, 0.08);
+      --shadow-md:     0 8px 32px rgba(91, 91, 214, 0.12);
+      --shadow-lg:     0 24px 64px rgba(91, 91, 214, 0.14);
+      --error:         #E05475;
+      --success:       #22C9A5;
+      --radius-sm:     10px;
+      --radius-md:     16px;
+      --radius-lg:     24px;
+      --radius-xl:     32px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      overflow-x: hidden;
+    }
+
+    /* ── Same background blobs as index.html ── */
+    .bg-blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.45;
+    }
+    .bg-blob--1 {
+      width: 560px; height: 560px;
+      background: radial-gradient(circle, #c5c5fa 0%, transparent 70%);
+      top: -180px; left: -160px;
+    }
+    .bg-blob--2 {
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, #a0f5e0 0%, transparent 70%);
+      bottom: 60px; right: -100px;
+    }
+
+    /* ── Page grid ── */
+    .page-wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    /* ════════════════════════
+       LEFT PANEL
+    ════════════════════════ */
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 8% 60px 10%;
+      min-height: 100vh;
+      animation: fadeSlideLeft 0.65s ease forwards;
+    }
+
+    @keyframes fadeSlideLeft {
+      from { opacity: 0; transform: translateX(-24px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .brand-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      margin-bottom: 56px;
+    }
+
+    .brand-logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-soft) 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(91, 91, 214, 0.35);
+    }
+
+    .brand-logo-icon i { color: #fff; font-size: 17px; }
+
+    .brand-name {
+      font-family: 'Instrument Serif', serif;
+      font-size: 22px;
+      color: var(--text-dark);
+      letter-spacing: -0.3px;
+    }
+
+    .brand-name span { color: var(--primary); }
+
+    .left-headline {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(34px, 3.5vw, 50px);
+      line-height: 1.12;
+      letter-spacing: -1px;
+      color: var(--text-dark);
+      margin-bottom: 18px;
+    }
+
+    .left-headline em {
+      font-style: italic;
+      color: var(--primary);
+    }
+
+    .left-sub {
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--text-mid);
+      line-height: 1.75;
+      max-width: 360px;
+      margin-bottom: 44px;
+    }
+
+    .feature-pills {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pill {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .pill:hover {
+      transform: translateX(4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .pill-icon {
+      width: 36px; height: 36px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .pill-icon.purple { background: var(--primary-pale); color: var(--primary); }
+    .pill-icon.teal   { background: var(--accent-pale);  color: var(--accent); }
+    .pill-icon.amber  { background: #FFF5E0; color: #D97706; }
+
+    .pill-text strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-dark);
+      margin-bottom: 1px;
+    }
+
+    .pill-text span {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    /* ════════════════════════
+       RIGHT PANEL
+    ════════════════════════ */
+    .right-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 8% 48px 6%;
+      min-height: 100vh;
+      animation: fadeSlideRight 0.65s ease 0.1s both;
+    }
+
+    @keyframes fadeSlideRight {
+      from { opacity: 0; transform: translateX(24px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 40px 38px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* ── Tabs ── */
+    .auth-tabs {
+      display: flex;
+      background: var(--primary-pale);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 28px;
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-light);
+      border-radius: 9px;
+      transition: all 0.22s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(91, 91, 214, 0.28);
+    }
+
+    /* ── Form panels ── */
+    .form-panel { display: none; }
+    .form-panel.active { display: block; }
+
+    .form-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: 26px;
+      color: var(--text-dark);
+      margin-bottom: 5px;
+      letter-spacing: -0.3px;
+    }
+
+    .form-sub {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    /* ── Inputs ── */
+    .input-group { margin-bottom: 15px; }
+
+    .input-label {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--text-mid);
+      margin-bottom: 7px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    .input-wrap { position: relative; }
+
+    .input-wrap i.input-icon {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      color: var(--text-light);
+      pointer-events: none;
+      transition: color 0.2s;
+    }
+
+    .input-wrap input {
+      width: 100%;
+      padding: 12px 40px;
+      background: var(--bg);
+      border: 1px solid var(--border-input);
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text-dark);
+      outline: none;
+      transition: border-color 0.22s, background 0.22s, box-shadow 0.22s;
+    }
+
+    .input-wrap input::placeholder { color: var(--text-light); opacity: 0.75; }
+
+    .input-wrap input:focus {
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(91, 91, 214, 0.1);
+    }
+
+    .input-wrap input.input-error {
+      border-color: var(--error);
+      box-shadow: 0 0 0 3px rgba(224, 84, 117, 0.09);
+    }
+
+    .input-wrap input.input-success { border-color: var(--success); }
+
+    .toggle-pw {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-light);
+      cursor: pointer;
+      padding: 4px;
+      font-size: 14px;
+      transition: color 0.2s;
+      line-height: 1;
+    }
+
+    .toggle-pw:hover { color: var(--primary); }
+
+    .field-error {
+      font-size: 11px;
+      color: var(--error);
+      margin-top: 5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 15px;
+    }
+
+    /* ── Row ── */
+    .form-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .checkbox-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .checkbox-wrap input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border: 1.5px solid var(--border-input);
+      border-radius: 4px;
+      background: var(--bg);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .checkbox-wrap input[type="checkbox"]:checked {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .checkbox-wrap input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 5px;
+      width: 4px; height: 8px;
+      border: 2px solid #fff;
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg);
+    }
+
+    .checkbox-label {
+      font-size: 13px;
+      color: var(--text-mid);
+      user-select: none;
+    }
+
+    .forgot-link {
+      font-size: 13px;
+      color: var(--primary);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: opacity 0.2s;
+      padding: 0;
+    }
+
+    .forgot-link:hover { opacity: 0.7; }
+
+    /* ── Submit button ── */
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-soft) 100%);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      box-shadow: 0 4px 18px rgba(91, 91, 214, 0.32);
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 26px rgba(91, 91, 214, 0.42);
+    }
+
+    .btn-submit:active { transform: translateY(0); }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-submit .spinner {
+      display: none;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    .btn-submit.loading .btn-label { display: none; }
+    .btn-submit.loading .spinner   { display: block; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Alert ── */
+    .alert {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      margin-bottom: 16px;
+      animation: alertIn 0.25s ease;
+    }
+
+    .alert.show { display: flex; }
+
+    .alert-error {
+      background: rgba(224, 84, 117, 0.07);
+      border: 1px solid rgba(224, 84, 117, 0.22);
+      color: var(--error);
+    }
+
+    .alert-success {
+      background: rgba(34, 201, 165, 0.07);
+      border: 1px solid rgba(34, 201, 165, 0.22);
+      color: #0E9A7D;
+    }
+
+    @keyframes alertIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Password strength ── */
+    .pw-strength { margin-top: 7px; }
+
+    .pw-strength-bars {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+
+    .pw-bar {
+      flex: 1; height: 3px;
+      border-radius: 99px;
+      background: var(--primary-pale);
+      transition: background 0.3s;
+    }
+
+    .pw-bar.weak   { background: #E05475; }
+    .pw-bar.fair   { background: #F59E0B; }
+    .pw-bar.good   { background: #60A5FA; }
+    .pw-bar.strong { background: var(--accent); }
+
+    .pw-strength-label { font-size: 11px; color: var(--text-light); }
+
+    /* ── Forgot panel ── */
+    .forgot-panel { display: none; }
+    .forgot-panel.active {
+      display: block;
+      animation: fadeSlideRight 0.3s ease;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: var(--text-light);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 18px;
+      padding: 0;
+      transition: color 0.2s;
+    }
+
+    .back-btn:hover { color: var(--primary); }
+
+    /* ── Card footer ── */
+    .card-footer-note {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 20px;
+      line-height: 1.6;
+    }
+
+    .card-footer-note a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .card-footer-note a:hover { text-decoration: underline; }
+
+    /* ── Responsive ── */
+    @media (max-width: 860px) {
+      .page-wrapper { grid-template-columns: 1fr; }
+      .left-panel   { display: none; }
+      .right-panel  { padding: 40px 6%; }
+    }
+
+    @media (max-width: 480px) {
+      .login-card { padding: 30px 22px; border-radius: var(--radius-lg); }
+    }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-blob bg-blob--1" aria-hidden="true"></div>
+  <div class="bg-blob bg-blob--2" aria-hidden="true"></div>
+
+  <div class="page-wrapper">
+
+    <!-- ── LEFT PANEL ── -->
+    <aside class="left-panel" aria-label="StudySync introduction">
+      <a href="index.html" class="brand-logo" aria-label="Back to StudySync home">
+        <div class="brand-logo-icon" aria-hidden="true">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <span class="brand-name">Study<span>Sync</span></span>
+      </a>
+
+      <h1 class="left-headline">
+        Your academic<br />
+        journey starts<br />
+        <em>right here.</em>
+      </h1>
+
+      <p class="left-sub">
+        Sign in to access your personalized dashboard — quizzes, tasks,
+        reminders, and progress tracking all in one calm space.
+      </p>
+
+      <div class="feature-pills" role="list">
+        <div class="pill" role="listitem">
+          <div class="pill-icon purple" aria-hidden="true">
+            <i class="fa-solid fa-brain"></i>
+          </div>
+          <div class="pill-text">
+            <strong>Smart Quiz Practice</strong>
+            <span>SHS-level questions across all subjects</span>
+          </div>
+        </div>
+        <div class="pill" role="listitem">
+          <div class="pill-icon teal" aria-hidden="true">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+          <div class="pill-text">
+            <strong>Progress Analytics</strong>
+            <span>Track streaks and spot weak areas early</span>
+          </div>
+        </div>
+        <div class="pill" role="listitem">
+          <div class="pill-icon amber" aria-hidden="true">
+            <i class="fa-solid fa-clock"></i>
+          </div>
+          <div class="pill-text">
+            <strong>Focus Timer</strong>
+            <span>Stay locked in with Pomodoro sessions</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── RIGHT PANEL ── -->
+    <main class="right-panel">
+      <div class="login-card">
+
+        <div class="auth-tabs" role="tablist" aria-label="Authentication options">
+          <button class="tab-btn active" id="tabLogin"
+            role="tab" aria-selected="true" aria-controls="panelLogin">Sign In</button>
+          <button class="tab-btn" id="tabRegister"
+            role="tab" aria-selected="false" aria-controls="panelRegister">Register</button>
+        </div>
+
+        <div class="alert" id="globalAlert" role="alert" aria-live="polite">
+          <i class="fa-solid fa-circle-exclamation" id="alertIcon"></i>
+          <span id="globalAlertMsg"></span>
+        </div>
+
+        <!-- LOGIN -->
+        <div class="form-panel active" id="panelLogin" role="tabpanel">
+          <h2 class="form-title">Welcome back</h2>
+          <p class="form-sub">Sign in to pick up where you left off.</p>
+          <form id="loginForm" novalidate>
+            <div class="input-group">
+              <label class="input-label" for="loginEmail">Email Address</label>
+              <div class="input-wrap">
+                <i class="fa-regular fa-envelope input-icon" aria-hidden="true"></i>
+                <input type="email" id="loginEmail" name="email"
+                  placeholder="you@school.com" autocomplete="email" required />
+                <div class="field-error" id="loginEmailErr" role="alert" aria-live="polite"></div>
+              </div>
+            </div>
+            <div class="input-group">
+              <label class="input-label" for="loginPassword">Password</label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-lock input-icon" aria-hidden="true"></i>
+                <input type="password" id="loginPassword" name="password"
+                  placeholder="Your password" autocomplete="current-password" required />
+                <button type="button" class="toggle-pw" id="toggleLoginPw" aria-label="Show password">
+                  <i class="fa-regular fa-eye"></i>
+                </button>
+                <div class="field-error" id="loginPwErr" role="alert" aria-live="polite"></div>
+              </div>
+            </div>
+            <div class="form-row">
+              <label class="checkbox-wrap">
+                <input type="checkbox" id="rememberMe" name="remember" />
+                <span class="checkbox-label">Remember me</span>
+              </label>
+              <button type="button" class="forgot-link" id="showForgotBtn">Forgot password?</button>
+            </div>
+            <button type="submit" class="btn-submit" id="loginSubmit">
+              <span class="btn-label">Sign In &nbsp;<i class="fa-solid fa-arrow-right" style="font-size:12px;"></i></span>
+              <span class="spinner" aria-hidden="true"></span>
+            </button>
+          </form>
+        </div>
+
+        <!-- REGISTER -->
+        <div class="form-panel" id="panelRegister" role="tabpanel">
+          <h2 class="form-title">Create account</h2>
+          <p class="form-sub">Start your academic journey with StudySync.</p>
+          <form id="registerForm" novalidate>
+            <div class="input-group">
+              <label class="input-label" for="regName">Full Name</label>
+              <div class="input-wrap">
+                <i class="fa-regular fa-user input-icon" aria-hidden="true"></i>
+                <input type="text" id="regName" name="name"
+                  placeholder="Your full name" autocomplete="name" required />
+                <div class="field-error" id="regNameErr" role="alert" aria-live="polite"></div>
+              </div>
+            </div>
+            <div class="input-group">
+              <label class="input-label" for="regEmail">Email Address</label>
+              <div class="input-wrap">
+                <i class="fa-regular fa-envelope input-icon" aria-hidden="true"></i>
+                <input type="email" id="regEmail" name="email"
+                  placeholder="you@school.com" autocomplete="email" required />
+                <div class="field-error" id="regEmailErr" role="alert" aria-live="polite"></div>
+              </div>
+            </div>
+            <div class="input-group">
+              <label class="input-label" for="regPassword">Password</label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-lock input-icon" aria-hidden="true"></i>
+                <input type="password" id="regPassword" name="password"
+                  placeholder="Create a strong password" autocomplete="new-password" required />
+                <button type="button" class="toggle-pw" id="toggleRegPw" aria-label="Show password">
+                  <i class="fa-regular fa-eye"></i>
+                </button>
+                <div class="field-error" id="regPwErr" role="alert" aria-live="polite"></div>
+              </div>
+              <div class="pw-strength" aria-live="polite">
+                <div class="pw-strength-bars" aria-hidden="true">
+                  <div class="pw-bar" id="pwBar1"></div>
+                  <div class="pw-bar" id="pwBar2"></div>
+                  <div class="pw-bar" id="pwBar3"></div>
+                  <div class="pw-bar" id="pwBar4"></div>
+                </div>
+                <span class="pw-strength-label" id="pwStrengthLabel"></span>
+              </div>
+            </div>
+            <div class="input-group">
+              <label class="input-label" for="regConfirm">Confirm Password</label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-shield-halved input-icon" aria-hidden="true"></i>
+                <input type="password" id="regConfirm" name="confirm"
+                  placeholder="Repeat your password" autocomplete="new-password" required />
+                <div class="field-error" id="regConfirmErr" role="alert" aria-live="polite"></div>
+              </div>
+            </div>
+            <button type="submit" class="btn-submit" id="registerSubmit">
+              <span class="btn-label">Create Account &nbsp;<i class="fa-solid fa-arrow-right" style="font-size:12px;"></i></span>
+              <span class="spinner" aria-hidden="true"></span>
+            </button>
+          </form>
+        </div>
+
+        <!-- FORGOT PASSWORD -->
+        <div class="forgot-panel" id="panelForgot" role="region" aria-label="Reset password">
+          <button type="button" class="back-btn" id="backToLoginBtn">
+            <i class="fa-solid fa-arrow-left"></i> Back to sign in
+          </button>
+          <h2 class="form-title">Reset password</h2>
+          <p class="form-sub">Enter your email and we'll send a reset link.</p>
+          <form id="forgotForm" novalidate>
+            <div class="input-group">
+              <label class="input-label" for="forgotEmail">Email Address</label>
+              <div class="input-wrap">
+                <i class="fa-regular fa-envelope input-icon" aria-hidden="true"></i>
+                <input type="email" id="forgotEmail" name="email"
+                  placeholder="you@school.com" autocomplete="email" required />
+                <div class="field-error" id="forgotEmailErr" role="alert" aria-live="polite"></div>
+              </div>
+            </div>
+            <button type="submit" class="btn-submit" id="forgotSubmit">
+              <span class="btn-label">Send Reset Link &nbsp;<i class="fa-solid fa-paper-plane" style="font-size:12px;"></i></span>
+              <span class="spinner" aria-hidden="true"></span>
+            </button>
+          </form>
+        </div>
+
+        <p class="card-footer-note">
+          By continuing you agree to our
+          <a href="terms.html">Terms of Use</a> and <a href="policy.html">Privacy Policy</a>.
+        </p>
+
+      </div>
+    </main>
+
+  </div>
+
+  <script src="js/login.js"></script>
+</body>
+</html>

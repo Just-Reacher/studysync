@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudySync — Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" type="image/png" href="/images/favicon.png">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #5B5BD6; --primary-soft: #7C7CF0; --primary-pale: #EEEEFF;
+      --accent: #22C9A5; --accent-pale: #E0FAF4;
+      --text-dark: #1A1A2E; --text-mid: #4A4A72; --text-light: #8888AA;
+      --bg: #F7F7FF; --bg-card: #FFFFFF;
+      --border: rgba(91,91,214,0.12); --border-input: rgba(91,91,214,0.18);
+      --shadow-sm: 0 2px 12px rgba(91,91,214,0.08);
+      --shadow-md: 0 8px 32px rgba(91,91,214,0.12);
+      --shadow-lg: 0 24px 64px rgba(91,91,214,0.16);
+      --sidebar-w: 240px;
+      --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px; --radius-xl: 32px;
+      --error: #E05475; --success: #22C9A5; --warn: #F59E0B;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-dark); min-height: 100vh; display: flex; overflow-x: hidden; }
+
+    .bg-blob { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; opacity: 0.35; }
+    .bg-blob--1 { width: 500px; height: 500px; background: radial-gradient(circle, #c5c5fa 0%, transparent 70%); top: -160px; left: -120px; }
+    .bg-blob--2 { width: 360px; height: 360px; background: radial-gradient(circle, #a0f5e0 0%, transparent 70%); bottom: 40px; right: -80px; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--bg-card); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s ease; }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 24px 20px 20px; text-decoration: none; border-bottom: 1px solid var(--border); }
+    .sidebar-logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); border-radius: 9px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(91,91,214,0.3); }
+    .sidebar-logo-icon i { color: #fff; font-size: 15px; }
+    .sidebar-logo-text { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--text-dark); }
+    .sidebar-logo-text span { color: var(--primary); }
+    .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); padding: 10px 10px 6px; margin-top: 6px; }
+    .nav-item { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: var(--radius-sm); text-decoration: none; font-size: 14px; color: var(--text-mid); transition: all 0.2s; position: relative; }
+    .nav-item i { width: 18px; text-align: center; font-size: 15px; color: var(--text-light); transition: color 0.2s; }
+    .nav-item:hover, .nav-item.active { background: var(--primary-pale); color: var(--primary); }
+    .nav-item:hover i, .nav-item.active i { color: var(--primary); }
+    .nav-item.active { font-weight: 500; }
+    .nav-item.active::before { content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 3px; background: var(--primary); border-radius: 0 3px 3px 0; }
+    .sidebar-footer { padding: 16px 12px; border-top: 1px solid var(--border); }
+    .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: background 0.2s; }
+    .sidebar-user:hover { background: var(--primary-pale); }
+    .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #fff; flex-shrink: 0; overflow: hidden; }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 13px; font-weight: 500; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 11px; color: var(--text-light); }
+    .logout-btn { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 14px; padding: 4px; transition: color 0.2s; }
+    .logout-btn:hover { color: var(--error); }
+
+    /* ── MAIN ── */
+    .main-content { margin-left: var(--sidebar-w); flex: 1; position: relative; z-index: 1; min-height: 100vh; }
+    .topbar { position: sticky; top: 0; background: rgba(247,247,255,0.88); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: 0 32px; height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; z-index: 40; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .menu-toggle { display: none; background: none; border: none; color: var(--text-dark); font-size: 18px; cursor: pointer; padding: 6px; }
+    .topbar-title { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--text-dark); letter-spacing: -0.3px; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .icon-btn { width: 38px; height: 38px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-mid); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; transition: all 0.2s; text-decoration: none; }
+    .icon-btn:hover { background: var(--primary-pale); color: var(--primary); }
+    .page-body { padding: 32px; max-width: 800px; display: flex; flex-direction: column; gap: 20px; }
+
+    /* ── SETTINGS NAV (side tabs) ── */
+    .settings-layout { display: grid; grid-template-columns: 200px 1fr; gap: 20px; align-items: start; }
+    .settings-nav { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px; box-shadow: var(--shadow-sm); position: sticky; top: 84px; }
+    .settings-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--text-mid); cursor: pointer; transition: all 0.2s; border: none; background: none; font-family: 'DM Sans', sans-serif; width: 100%; text-align: left; }
+    .settings-nav-item i { font-size: 14px; color: var(--text-light); width: 16px; text-align: center; transition: color 0.2s; }
+    .settings-nav-item:hover { background: var(--primary-pale); color: var(--primary); }
+    .settings-nav-item:hover i { color: var(--primary); }
+    .settings-nav-item.active { background: var(--primary-pale); color: var(--primary); font-weight: 500; }
+    .settings-nav-item.active i { color: var(--primary); }
+
+    /* ── SETTINGS SECTIONS ── */
+    .settings-sections { display: flex; flex-direction: column; gap: 20px; }
+    .settings-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; scroll-margin-top: 84px; }
+    .section-header { padding: 20px 24px; border-bottom: 1px solid var(--border); }
+    .section-title { font-size: 15px; font-weight: 500; color: var(--text-dark); display: flex; align-items: center; gap: 9px; }
+    .section-title i { color: var(--primary); font-size: 15px; }
+    .section-desc { font-size: 12px; color: var(--text-light); margin-top: 3px; }
+    .section-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; }
+
+    /* ── PROFILE CARD ── */
+    .profile-card { display: flex; align-items: center; gap: 20px; padding: 20px 24px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-soft) 100%); color: #fff; border-radius: var(--radius-md); box-shadow: 0 8px 24px rgba(91,91,214,0.3); }
+    .profile-avatar-wrap { position: relative; flex-shrink: 0; }
+    .profile-avatar { width: 72px; height: 72px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 3px solid rgba(255,255,255,0.4); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; color: #fff; overflow: hidden; }
+    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-upload-btn { position: absolute; bottom: 0; right: 0; width: 26px; height: 26px; border-radius: 50%; background: #fff; color: var(--primary); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: transform 0.2s; }
+    .avatar-upload-btn:hover { transform: scale(1.1); }
+    .profile-info { flex: 1; }
+    .profile-name { font-family: 'Instrument Serif', serif; font-size: 22px; margin-bottom: 2px; }
+    .profile-email { font-size: 13px; opacity: 0.8; }
+    .profile-role-badge { display: inline-block; padding: 3px 10px; background: rgba(255,255,255,0.2); border-radius: 99px; font-size: 11px; font-weight: 500; margin-top: 6px; }
+
+    /* ── FORM FIELDS ── */
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 7px; }
+    .form-label { font-size: 12px; font-weight: 500; color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.4px; }
+    .form-input, .form-select { width: 100%; padding: 11px 14px; border: 1px solid var(--border-input); border-radius: var(--radius-sm); background: var(--bg); font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-dark); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-input:focus, .form-select:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(91,91,214,0.1); }
+    .form-input::placeholder { color: var(--text-light); }
+    .form-input.error { border-color: var(--error); }
+    .field-error { font-size: 11px; color: var(--error); display: flex; align-items: center; gap: 4px; min-height: 15px; }
+    .field-hint  { font-size: 11px; color: var(--text-light); }
+
+    /* ── TOGGLE ROW ── */
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-row-left { flex: 1; }
+    .toggle-row-label { font-size: 14px; font-weight: 500; color: var(--text-dark); }
+    .toggle-row-desc  { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+    .toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider { position: absolute; inset: 0; background: #D1D5E8; border-radius: 99px; cursor: pointer; transition: background 0.25s; }
+    .toggle-slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.25s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+    .toggle input:checked + .toggle-slider { background: var(--primary); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+    /* ── THEME COLOURS ── */
+    .theme-colours { display: flex; gap: 10px; flex-wrap: wrap; }
+    .colour-btn { width: 36px; height: 36px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: all 0.2s; outline: none; }
+    .colour-btn.active { border-color: var(--text-dark); transform: scale(1.1); }
+    .colour-btn:hover { transform: scale(1.08); }
+
+    /* ── DANGER ZONE ── */
+    .danger-zone .section-title i { color: var(--error); }
+    .danger-btn { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); }
+    .danger-btn:last-child { border-bottom: none; }
+    .danger-btn-left { flex: 1; }
+    .danger-btn-label { font-size: 14px; font-weight: 500; color: var(--text-dark); }
+    .danger-btn-desc  { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+    .btn-danger { padding: 8px 16px; border-radius: var(--radius-sm); border: none; background: #FFF0F3; color: var(--error); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .btn-danger:hover { background: var(--error); color: #fff; }
+
+    /* ── SAVE BUTTONS ── */
+    .section-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+    .btn-save { padding: 10px 24px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; border: none; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); color: #fff; box-shadow: 0 4px 14px rgba(91,91,214,0.28); transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+    .btn-save:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(91,91,214,0.38); }
+    .btn-save:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-save .spinner { display: none; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; }
+    .btn-save.loading .btn-label { display: none; }
+    .btn-save.loading .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── TOAST ── */
+    .toast { position: fixed; bottom: 28px; right: 28px; background: var(--text-dark); color: #fff; padding: 12px 20px; border-radius: var(--radius-sm); font-size: 13px; z-index: 300; display: none; animation: toastIn 0.3s ease; box-shadow: var(--shadow-md); }
+    .toast.show { display: flex; align-items: center; gap: 8px; }
+    .toast.success { background: #0E9A7D; }
+    .toast.error   { background: var(--error); }
+    @keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ── CONFIRM MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(26,26,46,0.35); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 36px 32px; max-width: 420px; width: 100%; box-shadow: var(--shadow-lg); animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes modalIn { from { opacity:0; transform:scale(0.92) translateY(14px); } to { opacity:1; transform:scale(1) translateY(0); } }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .modal-title { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--error); }
+    .modal-close { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 18px; padding: 4px; border-radius: 6px; }
+    .modal-close:hover { background: var(--primary-pale); color: var(--primary); }
+    .modal p { font-size: 14px; color: var(--text-mid); line-height: 1.6; margin-bottom: 24px; }
+    .modal-footer { display: flex; gap: 10px; }
+    .btn-cancel { flex: 1; padding: 11px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-mid); transition: all 0.2s; }
+    .btn-cancel:hover { background: var(--primary-pale); color: var(--primary); border-color: transparent; }
+    .btn-confirm-danger { flex: 2; padding: 11px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; border: none; background: var(--error); color: #fff; transition: all 0.2s; }
+    .btn-confirm-danger:hover { opacity: 0.88; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(26,26,46,0.3); z-index: 49; backdrop-filter: blur(2px); }
+    .sidebar-overlay.show { display: block; }
+
+    @media (max-width: 900px)  { .settings-layout { grid-template-columns: 1fr; } .settings-nav { position: static; display: flex; flex-wrap: wrap; gap: 4px; padding: 8px; } .settings-nav-item { width: auto; flex: 0 0 auto; } }
+    @media (max-width: 800px)  { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } .menu-toggle { display: block; } .topbar { padding: 0 20px; } .page-body { padding: 20px; } }
+    @media (max-width: 520px)  { .field-row { grid-template-columns: 1fr; } .profile-card { flex-direction: column; text-align: center; } .profile-avatar-wrap { align-self: center; } .modal { padding: 28px 20px; } }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+<body>
+  <div class="bg-blob bg-blob--1" aria-hidden="true"></div>
+  <div class="bg-blob bg-blob--2" aria-hidden="true"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <a href="dashboard.html" class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+      <span class="sidebar-logo-text">Study<span>Sync</span></span>
+    </a>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="quizzes.html"   class="nav-item"><i class="fa-solid fa-brain"></i> Quizzes</a>
+      <a href="notes.html"     class="nav-item"><i class="fa-solid fa-book-open"></i> Notes</a>
+      <a href="tasks.html"     class="nav-item"><i class="fa-solid fa-list-check"></i> Tasks</a>
+      <span class="nav-section-label">Track</span>
+      <a href="progress.html"  class="nav-item"><i class="fa-solid fa-chart-line"></i> Progress</a>
+      <a href="calendar.html"  class="nav-item"><i class="fa-solid fa-calendar-days"></i> Calendar</a>
+      <a href="reminders.html" class="nav-item"><i class="fa-solid fa-bell"></i> Reminders</a>
+      <span class="nav-section-label">Focus</span>
+      <a href="pomodoro.html"  class="nav-item"><i class="fa-solid fa-clock"></i> Pomodoro</a>
+      <span class="nav-section-label">Account</span>
+      <a href="settings.html"  class="nav-item active" aria-current="page"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="sidebarAvatar"></div>
+        <div class="user-info">
+          <div class="user-name" id="sidebarUserName">Loading…</div>
+          <div class="user-role">Student</div>
+        </div>
+        <button class="logout-btn" id="logoutBtn" aria-label="Log out" title="Log out">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar"><i class="fa-solid fa-bars"></i></button>
+        <h1 class="topbar-title">Settings</h1>
+      </div>
+      <div class="topbar-right">
+        <a href="dashboard.html" class="icon-btn" aria-label="Dashboard"><i class="fa-solid fa-house"></i></a>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <div class="settings-layout">
+
+        <!-- Settings nav -->
+        <nav class="settings-nav" aria-label="Settings sections">
+          <button class="settings-nav-item active" data-section="profile"><i class="fa-solid fa-user"></i> Profile</button>
+          <button class="settings-nav-item" data-section="account"><i class="fa-solid fa-shield-halved"></i> Account</button>
+          <button class="settings-nav-item" data-section="notifications"><i class="fa-solid fa-bell"></i> Notifications</button>
+          <button class="settings-nav-item" data-section="appearance"><i class="fa-solid fa-palette"></i> Appearance</button>
+          <button class="settings-nav-item" data-section="danger"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</button>
+        </nav>
+
+        <div class="settings-sections">
+
+          <!-- ── PROFILE ── -->
+          <section class="settings-section" id="section-profile">
+            <div class="section-header">
+              <div class="section-title"><i class="fa-solid fa-user"></i> Profile</div>
+              <div class="section-desc">Your personal information and display details.</div>
+            </div>
+
+            <!-- Profile card -->
+            <div style="padding:20px 24px;border-bottom:1px solid var(--border);">
+              <div class="profile-card" id="profileCard">
+                <div class="profile-avatar-wrap">
+                  <div class="profile-avatar" id="profileAvatar"></div>
+                  <button class="avatar-upload-btn" id="avatarUploadBtn" aria-label="Change profile photo" title="Change photo">
+                    <i class="fa-solid fa-camera"></i>
+                  </button>
+                  <input type="file" id="avatarInput" accept="image/*" style="display:none;" aria-label="Upload avatar" />
+                </div>
+                <div class="profile-info">
+                  <div class="profile-name" id="profileName">Loading…</div>
+                  <div class="profile-email" id="profileEmail"></div>
+                  <span class="profile-role-badge">Student</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-body">
+              <div class="field-row">
+                <div class="form-group">
+                  <label class="form-label" for="firstName">First Name</label>
+                  <input type="text" class="form-input" id="firstName" placeholder="First name" autocomplete="given-name" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="lastName">Last Name</label>
+                  <input type="text" class="form-input" id="lastName" placeholder="Last name" autocomplete="family-name" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="displayEmail">Email Address</label>
+                <input type="email" class="form-input" id="displayEmail" placeholder="your@email.com" autocomplete="email" />
+              </div>
+              <div class="field-row">
+                <div class="form-group">
+                  <label class="form-label" for="shsLevel">SHS Level</label>
+                  <select class="form-select" id="shsLevel">
+                    <option value="">Select level</option>
+                    <option value="SHS1">SHS 1</option>
+                    <option value="SHS2">SHS 2</option>
+                    <option value="SHS3">SHS 3</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="track">Programme / Track</label>
+                  <select class="form-select" id="track">
+                    <option value="">Select track</option>
+                    <option value="General Science">General Science</option>
+                    <option value="General Arts">General Arts</option>
+                    <option value="Business">Business</option>
+                    <option value="Visual Arts">Visual Arts</option>
+                    <option value="Home Economics">Home Economics</option>
+                    <option value="Technical">Technical</option>
+                    <option value="Agriculture">Agriculture</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="section-footer">
+              <button class="btn-save" id="saveProfile">
+                <span class="btn-label">Save Profile</span>
+                <span class="spinner" aria-hidden="true"></span>
+              </button>
+            </div>
+          </section>
+
+          <!-- ── ACCOUNT / SECURITY ── -->
+          <section class="settings-section" id="section-account">
+            <div class="section-header">
+              <div class="section-title"><i class="fa-solid fa-shield-halved"></i> Account & Security</div>
+              <div class="section-desc">Update your password and account security settings.</div>
+            </div>
+            <div class="section-body">
+              <div class="form-group">
+                <label class="form-label" for="currentPassword">Current Password</label>
+                <input type="password" class="form-input" id="currentPassword" placeholder="Enter current password" autocomplete="current-password" />
+                <div class="field-error" id="currentPwErr"></div>
+              </div>
+              <div class="field-row">
+                <div class="form-group">
+                  <label class="form-label" for="newPassword">New Password</label>
+                  <input type="password" class="form-input" id="newPassword" placeholder="New password" autocomplete="new-password" />
+                  <div class="field-hint">At least 8 characters.</div>
+                  <div class="field-error" id="newPwErr"></div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="confirmPassword">Confirm Password</label>
+                  <input type="password" class="form-input" id="confirmPassword" placeholder="Repeat new password" autocomplete="new-password" />
+                  <div class="field-error" id="confirmPwErr"></div>
+                </div>
+              </div>
+            </div>
+            <div class="section-footer">
+              <button class="btn-save" id="savePassword">
+                <span class="btn-label">Update Password</span>
+                <span class="spinner" aria-hidden="true"></span>
+              </button>
+            </div>
+          </section>
+
+          <!-- ── NOTIFICATIONS ── -->
+          <section class="settings-section" id="section-notifications">
+            <div class="section-header">
+              <div class="section-title"><i class="fa-solid fa-bell"></i> Notifications</div>
+              <div class="section-desc">Control what you get notified about.</div>
+            </div>
+            <div class="section-body">
+              <div class="toggle-row">
+                <div class="toggle-row-left">
+                  <div class="toggle-row-label">Prayer Reminders</div>
+                  <div class="toggle-row-desc">Get notified for daily prayer times</div>
+                </div>
+                <label class="toggle" aria-label="Toggle prayer reminders">
+                  <input type="checkbox" id="notifPrayer" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-row-left">
+                  <div class="toggle-row-label">Study Reminders</div>
+                  <div class="toggle-row-desc">Get notified when study sessions are due</div>
+                </div>
+                <label class="toggle" aria-label="Toggle study reminders">
+                  <input type="checkbox" id="notifStudy" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-row-left">
+                  <div class="toggle-row-label">Quiz Reminders</div>
+                  <div class="toggle-row-desc">Be reminded about upcoming quizzes</div>
+                </div>
+                <label class="toggle" aria-label="Toggle quiz reminders">
+                  <input type="checkbox" id="notifQuiz" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-row-left">
+                  <div class="toggle-row-label">Task Deadlines</div>
+                  <div class="toggle-row-desc">Alerts when tasks are approaching deadline</div>
+                </div>
+                <label class="toggle" aria-label="Toggle task deadline notifications">
+                  <input type="checkbox" id="notifTasks" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-row-left">
+                  <div class="toggle-row-label">Motivational Popups</div>
+                  <div class="toggle-row-desc">Occasional motivational quotes on dashboard</div>
+                </div>
+                <label class="toggle" aria-label="Toggle motivational popups">
+                  <input type="checkbox" id="notifMotivation" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-row-left">
+                  <div class="toggle-row-label">Weekly Email Report</div>
+                  <div class="toggle-row-desc">Receive a weekly performance summary by email</div>
+                </div>
+                <label class="toggle" aria-label="Toggle weekly email report">
+                  <input type="checkbox" id="notifWeekly" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="section-footer">
+              <button class="btn-save" id="saveNotifications">
+                <span class="btn-label">Save Preferences</span>
+                <span class="spinner" aria-hidden="true"></span>
+              </button>
+            </div>
+          </section>
+
+          <!-- ── APPEARANCE ── -->
+          <section class="settings-section" id="section-appearance">
+            <div class="section-header">
+              <div class="section-title"><i class="fa-solid fa-palette"></i> Appearance</div>
+              <div class="section-desc">Customise how StudySync looks for you.</div>
+            </div>
+            <div class="section-body">
+              <div class="toggle-row">
+                <div class="toggle-row-left">
+                  <div class="toggle-row-label">Dark Mode</div>
+                  <div class="toggle-row-desc">Coming soon — dark theme support</div>
+                </div>
+                <label class="toggle" aria-label="Toggle dark mode">
+                  <input type="checkbox" id="darkMode" disabled />
+                  <span class="toggle-slider" style="opacity:0.4;cursor:not-allowed;"></span>
+                </label>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Accent Colour</label>
+                <div class="theme-colours" id="themeColours" role="radiogroup" aria-label="Select accent colour">
+                  <button class="colour-btn active" data-colour="purple" style="background:#5B5BD6;" aria-label="Purple" aria-pressed="true"></button>
+                  <button class="colour-btn" data-colour="teal"   style="background:#22C9A5;" aria-label="Teal" aria-pressed="false"></button>
+                  <button class="colour-btn" data-colour="rose"   style="background:#E05475;" aria-label="Rose" aria-pressed="false"></button>
+                  <button class="colour-btn" data-colour="amber"  style="background:#F59E0B;" aria-label="Amber" aria-pressed="false"></button>
+                  <button class="colour-btn" data-colour="indigo" style="background:#4F46E5;" aria-label="Indigo" aria-pressed="false"></button>
+                  <button class="colour-btn" data-colour="green"  style="background:#16A34A;" aria-label="Green" aria-pressed="false"></button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="fontSizeSelect">Font Size</label>
+                <select class="form-select" id="fontSizeSelect">
+                  <option value="small">Small</option>
+                  <option value="medium" selected>Medium (Default)</option>
+                  <option value="large">Large</option>
+                </select>
+              </div>
+            </div>
+            <div class="section-footer">
+              <button class="btn-save" id="saveAppearance">
+                <span class="btn-label">Save Appearance</span>
+                <span class="spinner" aria-hidden="true"></span>
+              </button>
+            </div>
+          </section>
+
+          <!-- ── DANGER ZONE ── -->
+          <section class="settings-section danger-zone" id="section-danger">
+            <div class="section-header">
+              <div class="section-title"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</div>
+              <div class="section-desc">Irreversible actions — proceed with caution.</div>
+            </div>
+            <div class="section-body">
+              <div class="danger-btn">
+                <div class="danger-btn-left">
+                  <div class="danger-btn-label">Clear All Progress Data</div>
+                  <div class="danger-btn-desc">Deletes all quiz history, streaks and analytics</div>
+                </div>
+                <button class="btn-danger" id="clearProgressBtn">Clear Progress</button>
+              </div>
+              <div class="danger-btn">
+                <div class="danger-btn-left">
+                  <div class="danger-btn-label">Delete All Tasks</div>
+                  <div class="danger-btn-desc">Permanently removes all your tasks</div>
+                </div>
+                <button class="btn-danger" id="clearTasksBtn">Delete Tasks</button>
+              </div>
+              <div class="danger-btn">
+                <div class="danger-btn-left">
+                  <div class="danger-btn-label">Delete Account</div>
+                  <div class="danger-btn-desc">Permanently deletes your account and all data</div>
+                </div>
+                <button class="btn-danger" id="deleteAccountBtn">Delete Account</button>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIRM MODAL -->
+  <div class="modal-overlay" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="confirmTitle">Are you sure?</h2>
+        <button class="modal-close" id="confirmModalClose" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p id="confirmText">This action cannot be undone.</p>
+      <div class="modal-footer">
+        <button class="btn-cancel" id="confirmCancelBtn">Cancel</button>
+        <button class="btn-confirm-danger" id="confirmActionBtn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/settings.js"></script>
+</body>
+</html>

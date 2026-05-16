@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudySync — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" type="image/png" href="/images/favicon.ico">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #5B5BD6; --primary-soft: #7C7CF0; --primary-pale: #EEEEFF;
+      --accent: #22C9A5; --accent-pale: #E0FAF4;
+      --text-dark: #1A1A2E; --text-mid: #4A4A72; --text-light: #8888AA;
+      --bg: #F7F7FF; --bg-card: #FFFFFF;
+      --border: rgba(91,91,214,0.12); --border-input: rgba(91,91,214,0.18);
+      --shadow-sm: 0 2px 12px rgba(91,91,214,0.08); --shadow-md: 0 8px 32px rgba(91,91,214,0.12);
+      --sidebar-w: 240px; --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px;
+      --error: #E05475; --success: #22C9A5; --warn: #F59E0B;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-dark); min-height: 100vh; display: flex; overflow-x: hidden; }
+    .bg-blob { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; opacity: 0.35; }
+    .bg-blob--1 { width: 500px; height: 500px; background: radial-gradient(circle, #c5c5fa 0%, transparent 70%); top: -160px; left: -120px; }
+    .bg-blob--2 { width: 360px; height: 360px; background: radial-gradient(circle, #a0f5e0 0%, transparent 70%); bottom: 40px; right: -80px; }
+
+    /* SIDEBAR */
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--bg-card); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s ease; }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 24px 20px 20px; text-decoration: none; border-bottom: 1px solid var(--border); }
+    .sidebar-logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); border-radius: 9px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(91,91,214,0.3); }
+    .sidebar-logo-icon i { color: #fff; font-size: 15px; }
+    .sidebar-logo-text { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--text-dark); }
+    .sidebar-logo-text span { color: var(--primary); }
+    .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); padding: 10px 10px 6px; margin-top: 6px; }
+    .nav-item { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: var(--radius-sm); text-decoration: none; font-size: 14px; color: var(--text-mid); transition: all 0.2s; position: relative; }
+    .nav-item i { width: 18px; text-align: center; font-size: 15px; color: var(--text-light); transition: color 0.2s; }
+    .nav-item:hover, .nav-item.active { background: var(--primary-pale); color: var(--primary); }
+    .nav-item:hover i, .nav-item.active i { color: var(--primary); }
+    .nav-item.active { font-weight: 500; }
+    .nav-item.active::before { content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 3px; background: var(--primary); border-radius: 0 3px 3px 0; }
+    .nav-badge { margin-left: auto; background: var(--primary); color: #fff; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 99px; min-width: 18px; text-align: center; display: none; }
+    .nav-badge.show { display: inline-block; }
+    .sidebar-footer { padding: 16px 12px; border-top: 1px solid var(--border); }
+    .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: background 0.2s; }
+    .sidebar-user:hover { background: var(--primary-pale); }
+    .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #fff; flex-shrink: 0; overflow: hidden; }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 13px; font-weight: 500; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 11px; color: var(--text-light); }
+    .logout-btn { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 14px; padding: 4px; transition: color 0.2s; }
+    .logout-btn:hover { color: var(--error); }
+
+    /* MAIN */
+    .main-content { margin-left: var(--sidebar-w); flex: 1; position: relative; z-index: 1; min-height: 100vh; }
+    .topbar { position: sticky; top: 0; background: rgba(247,247,255,0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: 0 32px; height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; z-index: 40; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .menu-toggle { display: none; background: none; border: none; color: var(--text-dark); font-size: 18px; cursor: pointer; padding: 6px; }
+    .topbar-title { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--text-dark); letter-spacing: -0.3px; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .topbar-date { font-size: 13px; color: var(--text-light); }
+    .icon-btn { width: 38px; height: 38px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-mid); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; transition: all 0.2s; position: relative; text-decoration: none; }
+    .icon-btn:hover { background: var(--primary-pale); color: var(--primary); border-color: rgba(91,91,214,0.2); }
+    .notif-dot { position: absolute; top: 6px; right: 7px; width: 7px; height: 7px; border-radius: 50%; background: var(--error); border: 1.5px solid var(--bg); display: none; }
+    .notif-dot.show { display: block; }
+    .page-body { padding: 32px; max-width: 1200px; }
+
+    /* WELCOME */
+    .welcome-bar { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; }
+    .welcome-greeting { font-family: 'Instrument Serif', serif; font-size: clamp(24px,3vw,32px); color: var(--text-dark); letter-spacing: -0.5px; }
+    .welcome-greeting span { color: var(--primary); }
+    .welcome-sub { font-size: 14px; color: var(--text-light); margin-top: 4px; }
+    .quote-chip { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 18px; max-width: 380px; box-shadow: var(--shadow-sm); }
+    .quote-chip p { font-size: 13px; font-style: italic; color: var(--text-mid); line-height: 1.55; }
+    .quote-chip span { font-size: 11px; color: var(--text-light); display: block; margin-top: 4px; }
+
+    /* QUICK ACTIONS */
+    .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+    .quick-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); text-decoration: none; cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); }
+    .quick-btn:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: rgba(91,91,214,0.2); }
+    .quick-btn-icon { width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .quick-btn span { font-size: 12px; font-weight: 500; color: var(--text-mid); text-align: center; }
+
+    /* STATS */
+    .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 12px; transition: transform 0.2s, box-shadow 0.2s; }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .stat-card-top { display: flex; align-items: center; justify-content: space-between; }
+    .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+    .stat-icon.purple { background: var(--primary-pale); color: var(--primary); }
+    .stat-icon.teal { background: var(--accent-pale); color: var(--accent); }
+    .stat-icon.amber { background: #FFF5E0; color: #D97706; }
+    .stat-icon.rose { background: #FFF0F3; color: #E05475; }
+    .stat-change { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 99px; }
+    .stat-change.up { background: var(--accent-pale); color: #0E9A7D; }
+    .stat-change.down { background: #FFF0F3; color: var(--error); }
+    .stat-change.neu { background: var(--primary-pale); color: var(--primary); }
+    .stat-value { font-family: 'Instrument Serif', serif; font-size: 30px; color: var(--text-dark); line-height: 1; }
+    .stat-label { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+
+    /* MAIN GRID */
+    .main-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
+    .grid-left, .grid-right { display: flex; flex-direction: column; gap: 20px; }
+    .section-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--border); }
+    .card-title { font-size: 15px; font-weight: 500; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
+    .card-title i { font-size: 14px; color: var(--primary); }
+    .card-link { font-size: 12px; color: var(--primary); text-decoration: none; font-weight: 500; transition: opacity 0.2s; }
+    .card-link:hover { opacity: 0.7; }
+    .card-body { padding: 20px; }
+
+    /* TASKS */
+    .task-list { display: flex; flex-direction: column; gap: 10px; }
+    .task-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); transition: all 0.2s; }
+    .task-item:hover { border-color: rgba(91,91,214,0.22); background: #fff; }
+    .task-check { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--border-input); background: #fff; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 10px; color: transparent; }
+    .task-check.done { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .task-item.completed .task-name { text-decoration: line-through; color: var(--text-light); }
+    .task-info { flex: 1; min-width: 0; }
+    .task-name { font-size: 13px; font-weight: 500; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .task-meta { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+    .priority-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 99px; flex-shrink: 0; text-transform: uppercase; letter-spacing: 0.3px; }
+    .priority-high { background: #FFF0F3; color: var(--error); }
+    .priority-medium { background: #FFF5E0; color: #D97706; }
+    .priority-low { background: var(--accent-pale); color: #0E9A7D; }
+
+    /* QUIZZES */
+    .quiz-upcoming { display: flex; flex-direction: column; gap: 10px; }
+    .quiz-item { display: flex; align-items: center; gap: 14px; padding: 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); text-decoration: none; transition: all 0.2s; }
+    .quiz-item:hover { border-color: rgba(91,91,214,0.22); background: #fff; transform: translateX(4px); }
+    .quiz-subj-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+    .quiz-info { flex: 1; }
+    .quiz-name { font-size: 13px; font-weight: 500; color: var(--text-dark); }
+    .quiz-meta { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+    .quiz-arrow { color: var(--text-light); font-size: 12px; }
+
+    /* MINI CALENDAR */
+    .mini-cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .mini-cal-month { font-size: 14px; font-weight: 500; color: var(--text-dark); }
+    .cal-nav-btn { background: none; border: none; cursor: pointer; color: var(--text-light); font-size: 14px; padding: 4px 8px; border-radius: 6px; transition: all 0.2s; }
+    .cal-nav-btn:hover { background: var(--primary-pale); color: var(--primary); }
+    .mini-cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; text-align: center; }
+    .cal-day-label { font-size: 10px; font-weight: 600; color: var(--text-light); text-transform: uppercase; padding: 4px 0; }
+    .cal-day { font-size: 12px; color: var(--text-mid); padding: 6px 4px; border-radius: 7px; cursor: pointer; transition: all 0.15s; line-height: 1; }
+    .cal-day:hover { background: var(--primary-pale); color: var(--primary); }
+    .cal-day.today { background: var(--primary); color: #fff; font-weight: 600; }
+    .cal-day.has-event { position: relative; }
+    .cal-day.has-event::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+    .cal-day.other-month { color: var(--text-light); opacity: 0.4; }
+
+    /* REMINDERS */
+    .reminder-list { display: flex; flex-direction: column; gap: 10px; }
+    .reminder-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+    .reminder-icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .reminder-info { flex: 1; }
+    .reminder-title { font-size: 13px; font-weight: 500; color: var(--text-dark); }
+    .reminder-time { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+    /* PERFORMANCE */
+    .performance-list { display: flex; flex-direction: column; gap: 14px; }
+    .perf-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+    .perf-subject { font-size: 13px; color: var(--text-dark); font-weight: 500; }
+    .perf-score { font-size: 12px; color: var(--text-mid); }
+    .perf-bar-wrap { height: 6px; background: var(--primary-pale); border-radius: 99px; overflow: hidden; }
+    .perf-bar { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: width 1s ease; }
+
+    /* STREAK */
+    .streak-card { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-soft) 100%); border-radius: var(--radius-md); padding: 20px; color: #fff; box-shadow: 0 8px 24px rgba(91,91,214,0.3); display: flex; align-items: center; gap: 16px; }
+    .streak-icon { font-size: 36px; line-height: 1; }
+    .streak-info { flex: 1; }
+    .streak-number { font-family: 'Instrument Serif', serif; font-size: 36px; line-height: 1; }
+    .streak-label { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+    .streak-sub { font-size: 11px; opacity: 0.65; margin-top: 4px; }
+
+    /* SKELETON */
+    .skeleton { background: linear-gradient(90deg, var(--primary-pale) 25%, #e8e8ff 50%, var(--primary-pale) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .sk-line { height: 14px; margin-bottom: 8px; }
+
+    /* EMPTY STATE */
+    .empty-state { text-align: center; padding: 28px 16px; color: var(--text-light); }
+    .empty-state i { font-size: 26px; margin-bottom: 10px; display: block; opacity: 0.4; }
+    .empty-state p { font-size: 13px; }
+
+    /* NOTIFICATION POPUP */
+    .notif-popup { position: fixed; bottom: 28px; right: 28px; width: 320px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: 0 12px 40px rgba(91,91,214,0.18); padding: 18px 20px; z-index: 200; display: none; animation: popupIn 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+    .notif-popup.show { display: block; }
+    @keyframes popupIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .notif-popup-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .notif-popup-title { font-size: 14px; font-weight: 500; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
+    .notif-popup-title i { color: var(--primary); }
+    .notif-close { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 14px; padding: 2px; transition: color 0.2s; }
+    .notif-close:hover { color: var(--text-dark); }
+    .notif-popup-body { font-size: 13px; color: var(--text-mid); line-height: 1.55; }
+    .notif-popup-actions { display: flex; gap: 8px; margin-top: 14px; }
+    .notif-action-btn { flex: 1; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+    .notif-action-btn.primary { background: var(--primary); color: #fff; }
+    .notif-action-btn.secondary { background: var(--primary-pale); color: var(--primary); }
+
+    /* SIDEBAR OVERLAY */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(26,26,46,0.3); z-index: 49; backdrop-filter: blur(2px); }
+    .sidebar-overlay.show { display: block; }
+
+    /* RESPONSIVE */
+    @media (max-width: 1100px) { .stats-row { grid-template-columns: repeat(2,1fr); } .main-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 800px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); box-shadow: var(--shadow-md); } .main-content { margin-left: 0; } .menu-toggle { display: block; } .topbar { padding: 0 20px; } .page-body { padding: 20px; } .topbar-date { display: none; } }
+    @media (max-width: 520px) { .stats-row { grid-template-columns: 1fr 1fr; } .quick-actions { grid-template-columns: repeat(2,1fr); } .welcome-bar { flex-direction: column; } .quote-chip { max-width: 100%; } }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+<body>
+  <div class="bg-blob bg-blob--1" aria-hidden="true"></div>
+  <div class="bg-blob bg-blob--2" aria-hidden="true"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <a href="dashboard.html" class="sidebar-logo" aria-label="StudySync Dashboard">
+      <div class="sidebar-logo-icon" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></div>
+      <span class="sidebar-logo-text">Study<span>Sync</span></span>
+    </a>
+    <nav class="sidebar-nav" aria-label="Site navigation">
+      <span class="nav-section-label">Main</span>
+      <a href="dashboard.html" class="nav-item active" aria-current="page"><i class="fa-solid fa-house" aria-hidden="true"></i> Dashboard</a>
+      <a href="quizzes.html" class="nav-item"><i class="fa-solid fa-brain" aria-hidden="true"></i> Quizzes <span class="nav-badge" id="navQuizBadge"></span></a>
+      <a href="notes.html" class="nav-item"><i class="fa-solid fa-book-open" aria-hidden="true"></i> Notes</a>
+      <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check" aria-hidden="true"></i> Tasks <span class="nav-badge" id="navTaskBadge"></span></a>
+      <span class="nav-section-label">Track</span>
+      <a href="progress.html" class="nav-item"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Progress</a>
+      <a href="calendar.html" class="nav-item"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> Calendar</a>
+      <a href="reminders.html" class="nav-item"><i class="fa-solid fa-bell" aria-hidden="true"></i> Reminders</a>
+      <span class="nav-section-label">Focus</span>
+      <a href="pomodoro.html" class="nav-item"><i class="fa-solid fa-clock" aria-hidden="true"></i> Pomodoro</a>
+      <span class="nav-section-label">Account</span>
+      <a href="settings.html" class="nav-item"><i class="fa-solid fa-gear" aria-hidden="true"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" id="sidebarUser">
+        <div class="user-avatar" id="sidebarAvatar"></div>
+        <div class="user-info">
+          <div class="user-name" id="sidebarUserName">Loading…</div>
+          <div class="user-role">Student</div>
+        </div>
+        <button class="logout-btn" id="logoutBtn" aria-label="Log out" title="Log out">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
+        <h1 class="topbar-title">Dashboard</h1>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-date" id="topbarDate"></span>
+        <button class="icon-btn" id="notifBtn" aria-label="Notifications">
+          <i class="fa-regular fa-bell"></i>
+          <span class="notif-dot" id="notifDot"></span>
+        </button>
+        <a href="settings.html" class="icon-btn" aria-label="Settings"><i class="fa-solid fa-gear"></i></a>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <!-- Welcome -->
+      <div class="welcome-bar">
+        <div>
+          <h2 class="welcome-greeting">Good <span id="greetingTime"></span>, <span id="greetingName"></span> 👋</h2>
+          <p class="welcome-sub" id="welcomeSub">Loading your dashboard…</p>
+        </div>
+        <div class="quote-chip" id="quoteChip">
+          <p id="quoteText"><span class="skeleton sk-line" style="width:100%;display:block;"></span></p>
+          <span id="quoteAuthor"></span>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="quick-actions">
+        <a href="quizzes.html" class="quick-btn">
+          <div class="quick-btn-icon" style="background:var(--primary-pale);color:var(--primary);"><i class="fa-solid fa-brain"></i></div>
+          <span>Start Quiz</span>
+        </a>
+        <a href="tasks.html" class="quick-btn">
+          <div class="quick-btn-icon" style="background:var(--accent-pale);color:var(--accent);"><i class="fa-solid fa-plus"></i></div>
+          <span>Add Task</span>
+        </a>
+        <a href="pomodoro.html" class="quick-btn">
+          <div class="quick-btn-icon" style="background:#FFF5E0;color:#D97706;"><i class="fa-solid fa-clock"></i></div>
+          <span>Focus Timer</span>
+        </a>
+        <a href="progress.html" class="quick-btn">
+          <div class="quick-btn-icon" style="background:#FDE8F5;color:#C026D3;"><i class="fa-solid fa-chart-pie"></i></div>
+          <span>My Progress</span>
+        </a>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row" id="statsRow">
+        <div class="stat-card">
+          <div class="stat-card-top"><div class="stat-icon purple"><i class="fa-solid fa-fire"></i></div><span class="stat-change neu" id="statStreakChange">—</span></div>
+          <div><div class="stat-value" id="statStreak">—</div><div class="stat-label">Study Streak</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top"><div class="stat-icon teal"><i class="fa-solid fa-list-check"></i></div><span class="stat-change neu" id="statTaskChange">—</span></div>
+          <div><div class="stat-value" id="statTasks">—</div><div class="stat-label">Tasks Today</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top"><div class="stat-icon amber"><i class="fa-solid fa-trophy"></i></div><span class="stat-change up" id="statScoreChange">—</span></div>
+          <div><div class="stat-value" id="statAvgScore">—</div><div class="stat-label">Avg. Quiz Score</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top"><div class="stat-icon rose"><i class="fa-solid fa-clock"></i></div><span class="stat-change neu" id="statFocusChange">—</span></div>
+          <div><div class="stat-value" id="statFocusTime">—</div><div class="stat-label">Focus Time Today</div></div>
+        </div>
+      </div>
+
+      <!-- Main grid -->
+      <div class="main-grid">
+        <div class="grid-left">
+          <div class="section-card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fa-solid fa-list-check"></i> Today's Tasks</h3>
+              <a href="tasks.html" class="card-link">View all →</a>
+            </div>
+            <div class="card-body"><div class="task-list" id="taskList"></div></div>
+          </div>
+          <div class="section-card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fa-solid fa-chart-line"></i> Subject Performance</h3>
+              <a href="progress.html" class="card-link">Full report →</a>
+            </div>
+            <div class="card-body"><div class="performance-list" id="performanceList"></div></div>
+          </div>
+        </div>
+
+        <div class="grid-right">
+          <div class="streak-card">
+            <div class="streak-icon">🔥</div>
+            <div class="streak-info">
+              <div class="streak-number" id="streakNumber">—</div>
+              <div class="streak-label">Day Study Streak</div>
+              <div class="streak-sub" id="streakSub">Keep it going!</div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fa-solid fa-calendar-days"></i> Calendar</h3>
+              <a href="calendar.html" class="card-link">Open →</a>
+            </div>
+            <div class="card-body">
+              <div class="mini-cal-header">
+                <button class="cal-nav-btn" id="calPrev" aria-label="Previous month">&#8249;</button>
+                <span class="mini-cal-month" id="calMonthLabel"></span>
+                <button class="cal-nav-btn" id="calNext" aria-label="Next month">&#8250;</button>
+              </div>
+              <div class="mini-cal-grid" id="calGrid"></div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fa-solid fa-brain"></i> Upcoming Quizzes</h3>
+              <a href="quizzes.html" class="card-link">All →</a>
+            </div>
+            <div class="card-body"><div class="quiz-upcoming" id="quizList"></div></div>
+          </div>
+
+          <div class="section-card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fa-solid fa-bell"></i> Reminders</h3>
+              <a href="reminders.html" class="card-link">All →</a>
+            </div>
+            <div class="card-body"><div class="reminder-list" id="reminderList"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification popup -->
+  <div class="notif-popup" id="notifPopup" role="dialog" aria-modal="true" aria-labelledby="notifPopupTitle">
+    <div class="notif-popup-header">
+      <span class="notif-popup-title" id="notifPopupTitle"><i class="fa-solid fa-bell"></i><span id="notifPopupTitleText"></span></span>
+      <button class="notif-close" id="notifClose" aria-label="Close notification"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <p class="notif-popup-body" id="notifPopupBody"></p>
+    <div class="notif-popup-actions">
+      <button class="notif-action-btn primary" id="notifPrimaryBtn"></button>
+      <button class="notif-action-btn secondary" id="notifSecondaryBtn">Dismiss</button>
+    </div>
+  </div>
+
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

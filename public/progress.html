@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudySync — Progress</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" type="image/png" href="/images/favicon.png">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #5B5BD6; --primary-soft: #7C7CF0; --primary-pale: #EEEEFF;
+      --accent: #22C9A5; --accent-pale: #E0FAF4;
+      --text-dark: #1A1A2E; --text-mid: #4A4A72; --text-light: #8888AA;
+      --bg: #F7F7FF; --bg-card: #FFFFFF;
+      --border: rgba(91,91,214,0.12); --border-input: rgba(91,91,214,0.18);
+      --shadow-sm: 0 2px 12px rgba(91,91,214,0.08);
+      --shadow-md: 0 8px 32px rgba(91,91,214,0.12);
+      --shadow-lg: 0 24px 64px rgba(91,91,214,0.16);
+      --sidebar-w: 240px;
+      --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px; --radius-xl: 32px;
+      --error: #E05475; --success: #22C9A5; --warn: #F59E0B;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-dark); min-height: 100vh; display: flex; overflow-x: hidden; }
+
+    .bg-blob { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; opacity: 0.35; }
+    .bg-blob--1 { width: 500px; height: 500px; background: radial-gradient(circle, #c5c5fa 0%, transparent 70%); top: -160px; left: -120px; }
+    .bg-blob--2 { width: 360px; height: 360px; background: radial-gradient(circle, #a0f5e0 0%, transparent 70%); bottom: 40px; right: -80px; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--bg-card); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s ease; }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 24px 20px 20px; text-decoration: none; border-bottom: 1px solid var(--border); }
+    .sidebar-logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); border-radius: 9px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(91,91,214,0.3); }
+    .sidebar-logo-icon i { color: #fff; font-size: 15px; }
+    .sidebar-logo-text { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--text-dark); }
+    .sidebar-logo-text span { color: var(--primary); }
+    .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); padding: 10px 10px 6px; margin-top: 6px; }
+    .nav-item { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: var(--radius-sm); text-decoration: none; font-size: 14px; color: var(--text-mid); transition: all 0.2s; position: relative; }
+    .nav-item i { width: 18px; text-align: center; font-size: 15px; color: var(--text-light); transition: color 0.2s; }
+    .nav-item:hover, .nav-item.active { background: var(--primary-pale); color: var(--primary); }
+    .nav-item:hover i, .nav-item.active i { color: var(--primary); }
+    .nav-item.active { font-weight: 500; }
+    .nav-item.active::before { content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 3px; background: var(--primary); border-radius: 0 3px 3px 0; }
+    .sidebar-footer { padding: 16px 12px; border-top: 1px solid var(--border); }
+    .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: background 0.2s; }
+    .sidebar-user:hover { background: var(--primary-pale); }
+    .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #fff; flex-shrink: 0; overflow: hidden; }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 13px; font-weight: 500; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 11px; color: var(--text-light); }
+    .logout-btn { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 14px; padding: 4px; transition: color 0.2s; }
+    .logout-btn:hover { color: var(--error); }
+
+    /* ── MAIN ── */
+    .main-content { margin-left: var(--sidebar-w); flex: 1; position: relative; z-index: 1; min-height: 100vh; }
+    .topbar { position: sticky; top: 0; background: rgba(247,247,255,0.88); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: 0 32px; height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; z-index: 40; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .menu-toggle { display: none; background: none; border: none; color: var(--text-dark); font-size: 18px; cursor: pointer; padding: 6px; }
+    .topbar-title { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--text-dark); letter-spacing: -0.3px; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .icon-btn { width: 38px; height: 38px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-mid); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; transition: all 0.2s; text-decoration: none; }
+    .icon-btn:hover { background: var(--primary-pale); color: var(--primary); }
+    .page-body { padding: 32px; max-width: 1100px; }
+
+    /* ── PAGE HEADER ── */
+    .page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
+    .page-title { font-family: 'Instrument Serif', serif; font-size: clamp(26px,3vw,36px); color: var(--text-dark); letter-spacing: -0.5px; margin-bottom: 4px; }
+    .page-sub { font-size: 14px; color: var(--text-light); }
+    .period-select { padding: 9px 14px; border: 1px solid var(--border-input); border-radius: var(--radius-sm); background: var(--bg-card); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text-dark); outline: none; cursor: pointer; box-shadow: var(--shadow-sm); transition: border-color 0.2s; }
+    .period-select:focus { border-color: var(--primary); }
+
+    /* ── STAT CARDS ── */
+    .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); transition: transform 0.2s, box-shadow 0.2s; }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .stat-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+    .stat-icon.purple { background: var(--primary-pale); color: var(--primary); }
+    .stat-icon.teal   { background: var(--accent-pale);  color: var(--accent); }
+    .stat-icon.amber  { background: #FFF5E0; color: #D97706; }
+    .stat-icon.rose   { background: #FFF0F3; color: var(--error); }
+    .stat-icon.green  { background: #F0FDF4; color: #16A34A; }
+    .stat-change { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 99px; }
+    .stat-change.up   { background: var(--accent-pale); color: #0E9A7D; }
+    .stat-change.down { background: #FFF0F3; color: var(--error); }
+    .stat-change.neu  { background: var(--primary-pale); color: var(--primary); }
+    .stat-value { font-family: 'Instrument Serif', serif; font-size: 30px; color: var(--text-dark); line-height: 1; }
+    .stat-label { font-size: 12px; color: var(--text-light); margin-top: 3px; }
+
+    /* ── MAIN GRID ── */
+    .main-grid { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+    .grid-left  { display: flex; flex-direction: column; gap: 20px; }
+    .grid-right { display: flex; flex-direction: column; gap: 20px; }
+
+    /* ── SECTION CARD ── */
+    .section-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--border); }
+    .card-title { font-size: 15px; font-weight: 500; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
+    .card-title i { color: var(--primary); font-size: 14px; }
+    .card-body { padding: 20px; }
+
+    /* ── ACTIVITY GRAPH ── */
+    .activity-graph { display: flex; flex-direction: column; gap: 10px; }
+    .activity-row { display: flex; align-items: center; gap: 10px; }
+    .activity-day-label { font-size: 11px; color: var(--text-light); width: 28px; flex-shrink: 0; text-align: right; }
+    .activity-bars { display: flex; gap: 4px; flex: 1; align-items: flex-end; height: 60px; }
+    .activity-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+    .activity-bar { width: 100%; border-radius: 4px 4px 0 0; background: linear-gradient(180deg, var(--primary), var(--primary-soft)); min-height: 4px; transition: height 0.8s ease; cursor: pointer; }
+    .activity-bar:hover { opacity: 0.8; }
+    .activity-bar.empty { background: var(--primary-pale); }
+    .activity-date-row { display: flex; gap: 4px; padding-left: 38px; }
+    .activity-date { flex: 1; font-size: 9px; color: var(--text-light); text-align: center; }
+
+    /* ── SUBJECT PERFORMANCE ── */
+    .subject-list { display: flex; flex-direction: column; gap: 14px; }
+    .subject-row-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .subject-row-left { display: flex; align-items: center; gap: 10px; }
+    .subject-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+    .subject-name { font-size: 13px; font-weight: 500; color: var(--text-dark); }
+    .subject-quizzes { font-size: 11px; color: var(--text-light); }
+    .subject-score { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+    .subject-bar-wrap { height: 7px; background: var(--primary-pale); border-radius: 99px; overflow: hidden; }
+    .subject-bar { height: 100%; border-radius: 99px; transition: width 1s ease; }
+
+    /* ── QUIZ HISTORY ── */
+    .history-list { display: flex; flex-direction: column; gap: 10px; }
+    .history-item { display: flex; align-items: center; gap: 14px; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); transition: all 0.2s; }
+    .history-item:hover { border-color: rgba(91,91,214,0.2); background: #fff; }
+    .history-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+    .history-info { flex: 1; min-width: 0; }
+    .history-title { font-size: 13px; font-weight: 500; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .history-meta  { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+    .history-score { font-family: 'Instrument Serif', serif; font-size: 20px; font-weight: 400; }
+    .score-good { color: var(--accent); }
+    .score-mid  { color: var(--warn); }
+    .score-low  { color: var(--error); }
+
+    /* ── STREAK CARD ── */
+    .streak-card { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-soft) 100%); border-radius: var(--radius-md); padding: 22px; color: #fff; box-shadow: 0 8px 24px rgba(91,91,214,0.3); }
+    .streak-top { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .streak-emoji { font-size: 36px; line-height: 1; }
+    .streak-number { font-family: 'Instrument Serif', serif; font-size: 42px; line-height: 1; }
+    .streak-label  { font-size: 13px; opacity: 0.8; }
+    .streak-sub    { font-size: 11px; opacity: 0.6; margin-top: 2px; }
+    .streak-dots { display: flex; gap: 6px; flex-wrap: wrap; }
+    .streak-dot { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+    .streak-dot.active { background: rgba(255,255,255,0.9); color: var(--primary); }
+    .streak-dot.today  { background: #fff; color: var(--primary); box-shadow: 0 0 0 2px rgba(255,255,255,0.5); }
+
+    /* ── ACHIEVEMENT BADGES ── */
+    .badges-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+    .badge-item { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); text-align: center; transition: all 0.2s; }
+    .badge-item:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+    .badge-item.locked { opacity: 0.4; filter: grayscale(1); }
+    .badge-emoji { font-size: 26px; line-height: 1; }
+    .badge-name  { font-size: 10px; font-weight: 600; color: var(--text-dark); }
+    .badge-desc  { font-size: 9px; color: var(--text-light); }
+
+    /* ── WEAK / STRONG SUBJECTS ── */
+    .insight-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .insight-card { border-radius: var(--radius-sm); padding: 16px; }
+    .insight-card.strong { background: var(--accent-pale); border: 1px solid rgba(34,201,165,0.2); }
+    .insight-card.weak   { background: #FFF0F3; border: 1px solid rgba(224,84,117,0.15); }
+    .insight-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .insight-card.strong .insight-label { color: #0E9A7D; }
+    .insight-card.weak   .insight-label { color: var(--error); }
+    .insight-subject { font-size: 14px; font-weight: 500; color: var(--text-dark); margin-bottom: 2px; }
+    .insight-score { font-family: 'Instrument Serif', serif; font-size: 22px; }
+    .insight-card.strong .insight-score { color: var(--accent); }
+    .insight-card.weak   .insight-score { color: var(--error); }
+
+    /* Skeleton */
+    .skeleton { background: linear-gradient(90deg, var(--primary-pale) 25%, #e8e8ff 50%, var(--primary-pale) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; }
+    @keyframes shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
+    .empty-state { text-align: center; padding: 32px 16px; color: var(--text-light); }
+    .empty-state i { font-size: 26px; margin-bottom: 10px; display: block; opacity: 0.35; }
+    .empty-state p { font-size: 13px; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(26,26,46,0.3); z-index: 49; backdrop-filter: blur(2px); }
+    .sidebar-overlay.show { display: block; }
+
+    @media (max-width: 1100px) { .stats-row { grid-template-columns: repeat(2,1fr); } .main-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 800px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } .menu-toggle { display: block; } .topbar { padding: 0 20px; } .page-body { padding: 20px; } }
+    @media (max-width: 520px) { .stats-row { grid-template-columns: 1fr 1fr; } .insight-row { grid-template-columns: 1fr; } .badges-grid { grid-template-columns: repeat(3,1fr); } }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+<body>
+  <div class="bg-blob bg-blob--1" aria-hidden="true"></div>
+  <div class="bg-blob bg-blob--2" aria-hidden="true"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <a href="dashboard.html" class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+      <span class="sidebar-logo-text">Study<span>Sync</span></span>
+    </a>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="quizzes.html"   class="nav-item"><i class="fa-solid fa-brain"></i> Quizzes</a>
+      <a href="notes.html"     class="nav-item"><i class="fa-solid fa-book-open"></i> Notes</a>
+      <a href="tasks.html"     class="nav-item"><i class="fa-solid fa-list-check"></i> Tasks</a>
+      <span class="nav-section-label">Track</span>
+      <a href="progress.html"  class="nav-item active" aria-current="page"><i class="fa-solid fa-chart-line"></i> Progress</a>
+      <a href="calendar.html"  class="nav-item"><i class="fa-solid fa-calendar-days"></i> Calendar</a>
+      <a href="reminders.html" class="nav-item"><i class="fa-solid fa-bell"></i> Reminders</a>
+      <span class="nav-section-label">Focus</span>
+      <a href="pomodoro.html"  class="nav-item"><i class="fa-solid fa-clock"></i> Pomodoro</a>
+      <span class="nav-section-label">Account</span>
+      <a href="settings.html"  class="nav-item"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="sidebarAvatar"></div>
+        <div class="user-info">
+          <div class="user-name" id="sidebarUserName">Loading…</div>
+          <div class="user-role">Student</div>
+        </div>
+        <button class="logout-btn" id="logoutBtn" aria-label="Log out" title="Log out">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar"><i class="fa-solid fa-bars"></i></button>
+        <h1 class="topbar-title">Progress</h1>
+      </div>
+      <div class="topbar-right">
+        <a href="dashboard.html" class="icon-btn" aria-label="Dashboard"><i class="fa-solid fa-house"></i></a>
+        <a href="settings.html"  class="icon-btn" aria-label="Settings"><i class="fa-solid fa-gear"></i></a>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Academic Progress</h2>
+          <p class="page-sub" id="progressSub">Loading your analytics…</p>
+        </div>
+        <select class="period-select" id="periodSelect" aria-label="Select time period">
+          <option value="7">Last 7 days</option>
+          <option value="30" selected>Last 30 days</option>
+          <option value="90">Last 3 months</option>
+          <option value="all">All time</option>
+        </select>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="stats-row" id="statsRow">
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-icon purple"><i class="fa-solid fa-brain"></i></div>
+            <span class="stat-change neu" id="scQuizChange">—</span>
+          </div>
+          <div class="stat-value" id="scTotalQuizzes">—</div>
+          <div class="stat-label">Quizzes Taken</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-icon teal"><i class="fa-solid fa-trophy"></i></div>
+            <span class="stat-change up" id="scAvgChange">—</span>
+          </div>
+          <div class="stat-value" id="scAvgScore">—</div>
+          <div class="stat-label">Average Score</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-icon amber"><i class="fa-solid fa-fire"></i></div>
+            <span class="stat-change neu" id="scStreakChange">—</span>
+          </div>
+          <div class="stat-value" id="scStreak">—</div>
+          <div class="stat-label">Study Streak</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-icon green"><i class="fa-solid fa-clock"></i></div>
+            <span class="stat-change neu" id="scFocusChange">—</span>
+          </div>
+          <div class="stat-value" id="scFocusHours">—</div>
+          <div class="stat-label">Focus Hours</div>
+        </div>
+      </div>
+
+      <!-- Insights -->
+      <div class="insight-row" style="margin-bottom:20px;" id="insightRow">
+        <div class="insight-card strong">
+          <div class="insight-label">💪 Strongest Subject</div>
+          <div class="insight-subject" id="strongSubject">—</div>
+          <div class="insight-score" id="strongScore">—</div>
+        </div>
+        <div class="insight-card weak">
+          <div class="insight-label">📖 Needs Work</div>
+          <div class="insight-subject" id="weakSubject">—</div>
+          <div class="insight-score" id="weakScore">—</div>
+        </div>
+      </div>
+
+      <!-- Main grid -->
+      <div class="main-grid">
+        <div class="grid-left">
+
+          <!-- Daily activity graph -->
+          <div class="section-card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fa-solid fa-chart-column"></i> Daily Activity</h3>
+            </div>
+            <div class="card-body">
+              <div class="activity-graph" id="activityGraph" aria-label="Daily quiz activity chart" aria-live="polite">
+                <div class="skeleton" style="height:80px;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Subject performance -->
+          <div class="section-card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fa-solid fa-chart-line"></i> Subject Performance</h3>
+            </div>
+            <div class="card-body">
+              <div class="subject-list" id="subjectList" aria-live="polite">
+                <div class="skeleton" style="height:14px;width:80%;margin-bottom:8px;"></div>
+                <div class="skeleton" style="height:7px;margin-bottom:14px;"></div>
+                <div class="skeleton" style="height:14px;width:65%;margin-bottom:8px;"></div>
+                <div class="skeleton" style="height:7px;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quiz history -->
+          <div class="section-card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Quiz History</h3>
+            </div>
+            <div class="card-body">
+              <div class="history-list" id="historyList" aria-live="polite">
+                <div class="skeleton" style="height:52px;margin-bottom:10px;"></div>
+                <div class="skeleton" style="height:52px;margin-bottom:10px;"></div>
+                <div class="skeleton" style="height:52px;"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="grid-right">
+
+          <!-- Streak card -->
+          <div class="streak-card" aria-live="polite">
+            <div class="streak-top">
+              <div class="streak-emoji">🔥</div>
+              <div>
+                <div class="streak-number" id="streakNum">—</div>
+                <div class="streak-label">Day Streak</div>
+                <div class="streak-sub" id="streakMsg">Keep it going!</div>
+              </div>
+            </div>
+            <div class="streak-dots" id="streakDots" aria-label="Last 7 days activity"></div>
+          </div>
+
+          <!-- Achievement badges -->
+          <div class="section-card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fa-solid fa-medal"></i> Achievements</h3>
+            </div>
+            <div class="card-body">
+              <div class="badges-grid" id="badgesGrid" aria-live="polite">
+                <div class="skeleton" style="height:80px;border-radius:10px;"></div>
+                <div class="skeleton" style="height:80px;border-radius:10px;"></div>
+                <div class="skeleton" style="height:80px;border-radius:10px;"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/progress.js"></script>
+</body>
+</html>

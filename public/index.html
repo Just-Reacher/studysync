@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudySync — Your Academic Companion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" type="image/png" href="/images/favicon.ico">
+
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #5B5BD6;
+      --primary-soft: #7C7CF0;
+      --primary-pale: #EEEEFF;
+      --accent: #22C9A5;
+      --accent-pale: #E0FAF4;
+      --text-dark: #1A1A2E;
+      --text-mid: #4A4A72;
+      --text-light: #8888AA;
+      --bg: #F7F7FF;
+      --bg-card: #FFFFFF;
+      --border: rgba(91, 91, 214, 0.12);
+      --shadow-sm: 0 2px 12px rgba(91, 91, 214, 0.08);
+      --shadow-md: 0 8px 32px rgba(91, 91, 214, 0.12);
+      --shadow-lg: 0 24px 64px rgba(91, 91, 214, 0.16);
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --radius-xl: 32px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-dark);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* ── Background decoration ── */
+    .bg-blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.45;
+    }
+    .bg-blob--1 {
+      width: 560px; height: 560px;
+      background: radial-gradient(circle, #c5c5fa 0%, transparent 70%);
+      top: -180px; left: -160px;
+    }
+    .bg-blob--2 {
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, #a0f5e0 0%, transparent 70%);
+      bottom: 60px; right: -100px;
+    }
+    .bg-blob--3 {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, #d5d5ff 0%, transparent 70%);
+      top: 55%; left: 40%;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 5%;
+      height: 68px;
+      background: rgba(247, 247, 255, 0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      transition: box-shadow 0.3s ease;
+    }
+
+    nav.scrolled {
+      box-shadow: var(--shadow-sm);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .nav-logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--primary) 0%, #7C7CF0 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(91, 91, 214, 0.35);
+    }
+
+    .nav-logo-icon i {
+      color: #fff;
+      font-size: 17px;
+    }
+
+    .nav-logo-text {
+      font-family: 'Instrument Serif', serif;
+      font-size: 22px;
+      color: var(--text-dark);
+      letter-spacing: -0.3px;
+    }
+
+    .nav-logo-text span {
+      color: var(--primary);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-mid);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary);
+    }
+
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: 50px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      border: none;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-mid);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      background: var(--primary-pale);
+      color: var(--primary);
+      border-color: rgba(91, 91, 214, 0.25);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-soft) 100%);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(91, 91, 214, 0.35);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(91, 91, 214, 0.45);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-large {
+      padding: 15px 34px;
+      font-size: 15px;
+    }
+
+    .btn-accent {
+      background: linear-gradient(135deg, var(--accent) 0%, #34D5B2 100%);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(34, 201, 165, 0.35);
+    }
+
+    .btn-accent:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(34, 201, 165, 0.45);
+    }
+
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-dark);
+      font-size: 20px;
+      padding: 6px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 5% 80px;
+    }
+
+    .hero-inner {
+      max-width: 740px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-pale);
+      color: var(--primary);
+      border: 1px solid rgba(91, 91, 214, 0.2);
+      border-radius: 50px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: fadeSlideUp 0.6s ease 0.1s forwards;
+    }
+
+    .hero-badge i {
+      font-size: 12px;
+    }
+
+    .hero-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(44px, 7vw, 72px);
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      color: var(--text-dark);
+      margin-bottom: 22px;
+      opacity: 0;
+      animation: fadeSlideUp 0.6s ease 0.2s forwards;
+    }
+
+    .hero-title .line-accent {
+      color: var(--primary);
+      font-style: italic;
+    }
+
+    .hero-title .line-highlight {
+      position: relative;
+      display: inline-block;
+    }
+
+    .hero-title .line-highlight::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      left: 0; right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, rgba(34, 201, 165, 0.4), rgba(34, 201, 165, 0.1));
+      border-radius: 4px;
+      z-index: -1;
+    }
+
+    .hero-sub {
+      font-size: 17px;
+      font-weight: 300;
+      color: var(--text-mid);
+      line-height: 1.7;
+      max-width: 520px;
+      margin: 0 auto 36px;
+      opacity: 0;
+      animation: fadeSlideUp 0.6s ease 0.35s forwards;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeSlideUp 0.6s ease 0.5s forwards;
+    }
+
+    .hero-note {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 16px;
+      opacity: 0;
+      animation: fadeSlideUp 0.6s ease 0.65s forwards;
+    }
+
+    /* ── FLOATING CARDS ── */
+    .hero-cards {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 64px auto 0;
+      padding: 0 5%;
+      opacity: 0;
+      animation: fadeSlideUp 0.8s ease 0.8s forwards;
+    }
+
+    .cards-preview {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .preview-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: default;
+    }
+
+    .preview-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .preview-card-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+
+    .icon-purple { background: var(--primary-pale); color: var(--primary); }
+    .icon-teal   { background: var(--accent-pale);  color: var(--accent);  }
+    .icon-amber  { background: #FFF5E0; color: #D97706; }
+
+    .preview-card h4 {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+
+    .preview-card p {
+      font-size: 12px;
+      color: var(--text-light);
+      line-height: 1.5;
+    }
+
+    .preview-stat {
+      margin-top: 12px;
+      font-size: 22px;
+      font-family: 'Instrument Serif', serif;
+      color: var(--primary);
+    }
+
+    .preview-bar-wrap {
+      margin-top: 10px;
+      height: 6px;
+      background: var(--primary-pale);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .preview-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 99px;
+      width: 0;
+      transition: width 1.4s ease 1.2s;
+    }
+
+    .preview-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .tag {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-weight: 500;
+    }
+
+    .tag-purple { background: var(--primary-pale); color: var(--primary); }
+    .tag-teal   { background: var(--accent-pale);  color: #0E9A7D; }
+    .tag-amber  { background: #FFF5E0; color: #B45309; }
+
+    /* ── FEATURES SECTION ── */
+    .section {
+      position: relative;
+      z-index: 1;
+      padding: 100px 5%;
+    }
+
+    .section-label {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--primary);
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(32px, 4vw, 48px);
+      line-height: 1.15;
+      letter-spacing: -0.8px;
+      color: var(--text-dark);
+      margin-bottom: 16px;
+    }
+
+    .section-sub {
+      font-size: 16px;
+      font-weight: 300;
+      color: var(--text-mid);
+      max-width: 500px;
+      line-height: 1.7;
+    }
+
+    .section-header {
+      max-width: 960px;
+      margin: 0 auto 56px;
+    }
+
+    .features-grid {
+      max-width: 960px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 28px 24px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .feature-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .feature-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 18px;
+    }
+
+    .feature-card h3 {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--text-light);
+      line-height: 1.65;
+    }
+
+    /* ── QUOTE SECTION ── */
+    .quote-section {
+      position: relative;
+      z-index: 1;
+      padding: 80px 5%;
+      text-align: center;
+    }
+
+    .quote-card {
+      max-width: 680px;
+      margin: 0 auto;
+      background: linear-gradient(135deg, var(--primary) 0%, #7C7CF0 100%);
+      border-radius: var(--radius-xl);
+      padding: 56px 48px;
+      box-shadow: 0 16px 48px rgba(91, 91, 214, 0.3);
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .quote-card::before {
+      content: '\201C';
+      position: absolute;
+      top: -20px; left: 28px;
+      font-size: 180px;
+      font-family: 'Instrument Serif', serif;
+      color: rgba(255,255,255,0.1);
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .quote-text {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(22px, 3vw, 30px);
+      font-style: italic;
+      line-height: 1.45;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .quote-author {
+      font-size: 13px;
+      font-weight: 400;
+      opacity: 0.75;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .steps-grid {
+      max-width: 860px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+      text-align: center;
+    }
+
+    .step-card {
+      padding: 32px 20px;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .step-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .step-number {
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-soft) 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Instrument Serif', serif;
+      font-size: 22px;
+      color: #fff;
+      margin: 0 auto 18px;
+      box-shadow: 0 4px 16px rgba(91, 91, 214, 0.3);
+    }
+
+    .step-card h3 {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .step-card p {
+      font-size: 13px;
+      color: var(--text-light);
+      line-height: 1.65;
+    }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      position: relative;
+      z-index: 1;
+      padding: 80px 5% 120px;
+      text-align: center;
+    }
+
+    .cta-card {
+      max-width: 700px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 64px 48px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .cta-card h2 {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(28px, 4vw, 44px);
+      letter-spacing: -0.8px;
+      color: var(--text-dark);
+      margin-bottom: 16px;
+    }
+
+    .cta-card p {
+      font-size: 16px;
+      font-weight: 300;
+      color: var(--text-mid);
+      line-height: 1.7;
+      margin-bottom: 36px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 28px 5%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .footer-logo {
+      font-family: 'Instrument Serif', serif;
+      font-size: 18px;
+      color: var(--text-dark);
+    }
+
+    .footer-logo span { color: var(--primary); }
+
+    footer p {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── MOBILE MENU ── */
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 68px; left: 0; right: 0;
+      background: rgba(247, 247, 255, 0.97);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 5%;
+      z-index: 99;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .mobile-menu.open { display: flex; }
+
+    .mobile-menu a {
+      font-size: 15px;
+      color: var(--text-mid);
+      text-decoration: none;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .nav-links, .nav-cta { display: none; }
+      .hamburger { display: block; }
+
+      .cards-preview {
+        grid-template-columns: 1fr;
+        max-width: 360px;
+        margin: 0 auto;
+      }
+
+      .quote-card { padding: 40px 28px; }
+      .cta-card   { padding: 44px 24px; }
+
+      footer {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero-actions { flex-direction: column; align-items: stretch; }
+      .btn-large { text-align: center; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background blobs -->
+  <div class="bg-blob bg-blob--1" aria-hidden="true"></div>
+  <div class="bg-blob bg-blob--2" aria-hidden="true"></div>
+  <div class="bg-blob bg-blob--3" aria-hidden="true"></div>
+
+  <!-- ── NAV ── -->
+  <nav id="mainNav" role="navigation" aria-label="Main navigation">
+    <a href="index.html" class="nav-logo" aria-label="StudySync Home">
+      <div class="nav-logo-icon" aria-hidden="true">
+        <i class="fa-solid fa-graduation-cap"></i>
+      </div>
+      <span class="nav-logo-text">Study<span>Sync</span></span>
+    </a>
+
+    <ul class="nav-links" role="list">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how">How it Works</a></li>
+      <li><a href="#quote">Motivation</a></li>
+    </ul>
+
+    <div class="nav-cta">
+      <a href="login.html" class="btn btn-ghost">Sign In</a>
+      <a href="login.html" class="btn btn-primary">Get Started <i class="fa-solid fa-arrow-right" style="font-size:12px;"></i></a>
+    </div>
+
+    <button class="hamburger" id="hamburgerBtn" aria-label="Toggle mobile menu" aria-expanded="false">
+      <i class="fa-solid fa-bars" id="hamburgerIcon"></i>
+    </button>
+  </nav>
+
+  <!-- Mobile menu -->
+  <div class="mobile-menu" id="mobileMenu" role="navigation" aria-label="Mobile navigation">
+    <a href="#features">Features</a>
+    <a href="#how">How it Works</a>
+    <a href="#quote">Motivation</a>
+    <a href="login.html" class="btn btn-primary" style="margin-top:8px; justify-content:center;">Get Started</a>
+  </div>
+
+  <!-- ── HERO ── -->
+  <main>
+    <section class="hero" aria-labelledby="heroTitle">
+      <div class="hero-inner">
+        <div class="hero-badge" aria-label="For SHS students">
+          <i class="fa-solid fa-star"></i>
+          Built for Ruthlyn's SHS Journey
+        </div>
+
+        <h1 class="hero-title" id="heroTitle">
+          Your personal<br />
+          <span class="line-accent">academic</span>
+          <span class="line-highlight"> companion</span>
+        </h1>
+
+        <p class="hero-sub">
+          StudySync brings quizzes, tasks, reminders, progress tracking, and
+          focus timers into one calm and intelligent student dashboard.
+        </p>
+
+        <div class="hero-actions">
+          <a href="login.html" class="btn btn-primary btn-large">
+            Start Learning <i class="fa-solid fa-arrow-right" style="font-size:13px;"></i>
+          </a>
+          <a href="#features" class="btn btn-ghost btn-large">
+            Explore Features
+          </a>
+        </div>
+
+        <p class="hero-note"><i class="fa-solid fa-lock" style="font-size:11px;"></i> Private &amp; secure — just for you</p>
+      </div>
+    </section>
+
+    <!-- ── PREVIEW CARDS ── -->
+    <div class="hero-cards" aria-label="App preview">
+      <div class="cards-preview">
+
+        <div class="preview-card">
+          <div class="preview-card-icon icon-purple" aria-hidden="true">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+          <h4>Study Streak</h4>
+          <p>Track your daily consistency</p>
+          <div class="preview-stat" aria-label="14 day streak">14 days 🔥</div>
+          <div class="preview-bar-wrap" role="progressbar" aria-valuenow="78" aria-valuemin="0" aria-valuemax="100" aria-label="78% progress">
+            <div class="preview-bar" id="previewBar1" style="--target:78%;"></div>
+          </div>
+        </div>
+
+        <div class="preview-card">
+          <div class="preview-card-icon icon-teal" aria-hidden="true">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <h4>Today's Tasks</h4>
+          <p>Stay on top of your work</p>
+          <div class="preview-tags" aria-label="Sample tasks">
+            <span class="tag tag-purple">Math HW</span>
+            <span class="tag tag-teal">ICT Notes</span>
+            <span class="tag tag-amber">Revision</span>
+          </div>
+        </div>
+
+        <div class="preview-card">
+          <div class="preview-card-icon icon-amber" aria-hidden="true">
+            <i class="fa-solid fa-trophy"></i>
+          </div>
+          <h4>Quiz Score</h4>
+          <p>Last attempt: Science</p>
+          <div class="preview-stat" aria-label="Score: 88 out of 100">88 / 100</div>
+          <div class="preview-bar-wrap" role="progressbar" aria-valuenow="88" aria-valuemin="0" aria-valuemax="100" aria-label="88% score">
+            <div class="preview-bar" id="previewBar2" style="--target:88%;"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── FEATURES ── -->
+    <section class="section" id="features" aria-labelledby="featuresTitle">
+      <div class="section-header">
+        <span class="section-label">Everything You Need</span>
+        <h2 class="section-title" id="featuresTitle">Built to help you<br />study smarter</h2>
+        <p class="section-sub">Every tool is designed around how students actually learn and plan their days.</p>
+      </div>
+
+      <div class="features-grid" id="featuresGrid" role="list">
+
+        <article class="feature-card" role="listitem">
+          <div class="feature-icon icon-purple" aria-hidden="true"><i class="fa-solid fa-brain"></i></div>
+          <h3>Smart Quizzes</h3>
+          <p>Practice SHS-level questions across all subjects with instant scoring and revision notes.</p>
+        </article>
+
+        <article class="feature-card" role="listitem">
+          <div class="feature-icon icon-teal" aria-hidden="true"><i class="fa-solid fa-list-check"></i></div>
+          <h3>Task Manager</h3>
+          <p>Organize your homework, assignments, and deadlines with priority labels and reminders.</p>
+        </article>
+
+        <article class="feature-card" role="listitem">
+          <div class="feature-icon icon-amber" aria-hidden="true"><i class="fa-solid fa-clock"></i></div>
+          <h3>Pomodoro Timer</h3>
+          <p>Stay focused with 25-minute study sessions and tracked break intervals.</p>
+        </article>
+
+        <article class="feature-card" role="listitem">
+          <div class="feature-icon" style="background:#FDE8F5; color:#C026D3;" aria-hidden="true"><i class="fa-solid fa-chart-pie"></i></div>
+          <h3>Progress Analytics</h3>
+          <p>Visualize your performance by subject, track study streaks, and spot weak areas early.</p>
+        </article>
+
+        <article class="feature-card" role="listitem">
+          <div class="feature-icon" style="background:#E8F5E9; color:#16A34A;" aria-hidden="true"><i class="fa-solid fa-calendar-days"></i></div>
+          <h3>Academic Calendar</h3>
+          <p>Plan your month visually with study schedules, exam dates, and activity tracking.</p>
+        </article>
+
+        <article class="feature-card" role="listitem">
+          <div class="feature-icon" style="background:#FFF3E0; color:#EA580C;" aria-hidden="true"><i class="fa-solid fa-bell"></i></div>
+          <h3>Smart Reminders</h3>
+          <p>Get timely notifications for prayers, study sessions, and school activities.</p>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── HOW IT WORKS ── -->
+    <section class="section" id="how" aria-labelledby="howTitle" style="background: rgba(91,91,214,0.03); border-radius: 40px; margin: 0 2%; padding: 80px 5%;">
+      <div class="section-header" style="text-align: center; max-width: 560px; margin: 0 auto 56px;">
+        <span class="section-label">How It Works</span>
+        <h2 class="section-title" id="howTitle">Three steps to<br />academic clarity</h2>
+      </div>
+
+      <div class="steps-grid" id="stepsGrid">
+        <div class="step-card">
+          <div class="step-number" aria-hidden="true">1</div>
+          <h3>Log In</h3>
+          <p>Create your secure student profile and personalize your experience in under a minute.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number" aria-hidden="true">2</div>
+          <h3>Plan Your Day</h3>
+          <p>Add your tasks, set reminders, and schedule study sessions on the academic calendar.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number" aria-hidden="true">3</div>
+          <h3>Track &amp; Improve</h3>
+          <p>Take quizzes, review your analytics, and watch your performance grow week by week.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── MOTIVATIONAL QUOTE ── -->
+    <section class="quote-section" id="quote" aria-labelledby="quoteHeading">
+      <h2 class="sr-only" id="quoteHeading">Motivational Quote</h2>
+      <div class="quote-card" id="quoteCard">
+        <p class="quote-text" id="quoteText">
+          "Success is the sum of small efforts, repeated day in and day out."
+        </p>
+        <p class="quote-author" id="quoteAuthor">— Robert Collier</p>
+      </div>
+    </section>
+
+    <!-- ── CTA ── -->
+    <section class="cta-section" aria-labelledby="ctaTitle">
+      <div class="cta-card">
+        <h2 id="ctaTitle">Ready to study smarter?</h2>
+        <p>Join StudySync today and build the discipline, focus, and confidence you need to excel in SHS.</p>
+        <a href="login.html" class="btn btn-primary btn-large">
+          Get Started Free <i class="fa-solid fa-arrow-right" style="font-size:13px;"></i>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- ── FOOTER ── -->
+  <footer>
+    <div class="footer-logo">Study<span>Sync</span></div>
+    <p>© 2026 StudySync. Made for Ruthlyn's SHS Journey.</p>
+    <p style="font-size:12px; color:var(--text-light);">Calm · Focused · Consistent</p>
+  </footer>
+
+  <!-- Visually hidden helper for screen readers -->
+  <style>
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+  </style>
+
+  <script src="js/index.js"></script>
+</body>
+</html>

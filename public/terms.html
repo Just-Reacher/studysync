@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudySync — Terms of Use</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" type="image/png" href="/images/favicon.png">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #5B5BD6; --primary-soft: #7C7CF0; --primary-pale: #EEEEFF;
+      --accent: #22C9A5; --accent-pale: #E0FAF4;
+      --text-dark: #1A1A2E; --text-mid: #4A4A72; --text-light: #8888AA;
+      --bg: #F7F7FF; --bg-card: #FFFFFF;
+      --border: rgba(91,91,214,0.12);
+      --shadow-sm: 0 2px 12px rgba(91,91,214,0.08);
+      --shadow-md: 0 8px 32px rgba(91,91,214,0.12);
+      --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px; --radius-xl: 32px;
+      --error: #E05475;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-dark); min-height: 100vh; overflow-x: hidden; }
+
+    .bg-blob { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; opacity: 0.35; }
+    .bg-blob--1 { width: 500px; height: 500px; background: radial-gradient(circle, #c5c5fa 0%, transparent 70%); top: -160px; left: -120px; }
+    .bg-blob--2 { width: 360px; height: 360px; background: radial-gradient(circle, #a0f5e0 0%, transparent 70%); bottom: 40px; right: -80px; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 6%; height: 66px;
+      background: rgba(247,247,255,0.82); backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); border-radius: 9px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(91,91,214,0.3); }
+    .nav-logo-icon i { color: #fff; font-size: 15px; }
+    .nav-logo-text { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--text-dark); }
+    .nav-logo-text span { color: var(--primary); }
+    .nav-links { display: flex; align-items: center; gap: 16px; }
+    .nav-link { font-size: 13px; color: var(--text-mid); text-decoration: none; transition: color 0.2s; }
+    .nav-link:hover { color: var(--primary); }
+    .nav-btn { padding: 9px 20px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); color: #fff; border: none; border-radius: 99px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; box-shadow: 0 4px 14px rgba(91,91,214,0.28); transition: all 0.2s; }
+    .nav-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(91,91,214,0.38); }
+
+    /* ── PAGE LAYOUT ── */
+    .page-wrap { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 110px 24px 80px; display: grid; grid-template-columns: 220px 1fr; gap: 32px; align-items: start; }
+
+    /* ── TOC ── */
+    .toc { position: sticky; top: 90px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); }
+    .toc-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); margin-bottom: 12px; }
+    .toc-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .toc-item a { font-size: 12px; color: var(--text-mid); text-decoration: none; display: block; padding: 5px 8px; border-radius: 6px; transition: all 0.2s; line-height: 1.4; }
+    .toc-item a:hover { background: var(--primary-pale); color: var(--primary); }
+    .toc-item a.active { background: var(--primary-pale); color: var(--primary); font-weight: 500; }
+
+    /* ── CONTENT ── */
+    .doc-content { display: flex; flex-direction: column; gap: 32px; }
+
+    .doc-hero { background: linear-gradient(135deg, #1A1A2E 0%, #2D2D5E 100%); border-radius: var(--radius-lg); padding: 36px 32px; color: #fff; box-shadow: 0 8px 28px rgba(26,26,46,0.3); }
+    .doc-hero-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.6; margin-bottom: 10px; }
+    .doc-hero-title { font-family: 'Instrument Serif', serif; font-size: clamp(28px, 4vw, 38px); letter-spacing: -0.5px; margin-bottom: 10px; }
+    .doc-hero-meta { font-size: 13px; opacity: 0.6; display: flex; align-items: center; gap: 8px; }
+    .doc-hero-meta i { font-size: 12px; }
+
+    .doc-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 28px 30px; box-shadow: var(--shadow-sm); scroll-margin-top: 90px; }
+    .doc-section-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-pale); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 17px; margin-bottom: 14px; }
+    .doc-section h2 { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--text-dark); letter-spacing: -0.3px; margin-bottom: 14px; }
+    .doc-section p { font-size: 14px; color: var(--text-mid); line-height: 1.8; margin-bottom: 12px; }
+    .doc-section p:last-child { margin-bottom: 0; }
+    .doc-section ul { padding-left: 18px; display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+    .doc-section ul li { font-size: 14px; color: var(--text-mid); line-height: 1.7; }
+    .doc-section ul li::marker { color: var(--primary); }
+    .doc-section strong { color: var(--text-dark); font-weight: 500; }
+    .doc-section a { color: var(--primary); text-decoration: none; }
+    .doc-section a:hover { text-decoration: underline; }
+
+    .highlight-box { background: var(--primary-pale); border: 1px solid rgba(91,91,214,0.15); border-radius: var(--radius-sm); padding: 16px 18px; margin: 14px 0; }
+    .highlight-box p { font-size: 13px; color: var(--primary); margin: 0; line-height: 1.65; }
+    .highlight-box i { margin-right: 6px; }
+
+    .warn-box { background: #FFF5E0; border: 1px solid rgba(245,158,11,0.2); border-radius: var(--radius-sm); padding: 16px 18px; margin: 14px 0; }
+    .warn-box p { font-size: 13px; color: #92400E; margin: 0; line-height: 1.65; }
+    .warn-box i { margin-right: 6px; color: #D97706; }
+
+    .danger-box { background: #FFF0F3; border: 1px solid rgba(224,84,117,0.15); border-radius: var(--radius-sm); padding: 16px 18px; margin: 14px 0; }
+    .danger-box p { font-size: 13px; color: #9B1C3A; margin: 0; line-height: 1.65; }
+    .danger-box i { margin-right: 6px; color: var(--error); }
+
+    .contact-card { display: flex; align-items: center; gap: 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px 18px; margin-top: 14px; }
+    .contact-icon { width: 38px; height: 38px; border-radius: 9px; background: var(--primary-pale); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .contact-info { font-size: 13px; color: var(--text-mid); }
+    .contact-info strong { display: block; color: var(--text-dark); font-weight: 500; margin-bottom: 2px; }
+
+    .doc-footer { text-align: center; padding: 32px 0 0; border-top: 1px solid var(--border); margin-top: 8px; }
+    .doc-footer p { font-size: 13px; color: var(--text-light); margin-bottom: 12px; }
+    .footer-links { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+    .footer-links a { font-size: 13px; color: var(--primary); text-decoration: none; transition: opacity 0.2s; }
+    .footer-links a:hover { opacity: 0.7; }
+
+    @media (max-width: 760px) { .page-wrap { grid-template-columns: 1fr; padding-top: 90px; } .toc { position: static; } }
+    @media (max-width: 480px) { .doc-hero { padding: 26px 22px; } .doc-section { padding: 22px 20px; } nav { padding: 0 4%; } .nav-links .nav-link { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="bg-blob bg-blob--1" aria-hidden="true"></div>
+  <div class="bg-blob bg-blob--2" aria-hidden="true"></div>
+
+  <!-- NAV -->
+  <nav role="navigation" aria-label="Main navigation">
+    <a href="index.html" class="nav-logo" aria-label="StudySync Home">
+      <div class="nav-logo-icon" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></div>
+      <span class="nav-logo-text">Study<span>Sync</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="policy.html" class="nav-link">Privacy Policy</a>
+      <a href="login.html"  class="nav-btn">Sign In</a>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+
+    <!-- TOC -->
+    <aside class="toc" aria-label="Table of contents">
+      <div class="toc-title">On this page</div>
+      <ul class="toc-list" role="list">
+        <li class="toc-item"><a href="#overview">Overview</a></li>
+        <li class="toc-item"><a href="#eligibility">Eligibility</a></li>
+        <li class="toc-item"><a href="#account">Your Account</a></li>
+        <li class="toc-item"><a href="#acceptable-use">Acceptable Use</a></li>
+        <li class="toc-item"><a href="#content">Your Content</a></li>
+        <li class="toc-item"><a href="#intellectual-property">Intellectual Property</a></li>
+        <li class="toc-item"><a href="#disclaimers">Disclaimers</a></li>
+        <li class="toc-item"><a href="#termination">Termination</a></li>
+        <li class="toc-item"><a href="#changes">Changes to Terms</a></li>
+        <li class="toc-item"><a href="#contact">Contact</a></li>
+      </ul>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="doc-content">
+
+      <!-- Hero -->
+      <div class="doc-hero">
+        <div class="doc-hero-label">Legal</div>
+        <h1 class="doc-hero-title">Terms of Use</h1>
+        <div class="doc-hero-meta">
+          <i class="fa-regular fa-calendar"></i> Last updated: May 2026
+          &nbsp;·&nbsp;
+          <i class="fa-regular fa-clock"></i> 6 min read
+        </div>
+      </div>
+
+      <!-- Overview -->
+      <div class="doc-section" id="overview">
+        <div class="doc-section-icon"><i class="fa-solid fa-file-contract" aria-hidden="true"></i></div>
+        <h2>Overview</h2>
+        <p>These Terms of Use ("Terms") govern your access to and use of StudySync, a personal academic productivity platform for Senior High School students. By creating an account or using StudySync, you agree to be bound by these Terms.</p>
+        <p>Please read these Terms carefully. If you do not agree with any part of them, please do not use StudySync.</p>
+        <div class="highlight-box">
+          <p><i class="fa-solid fa-circle-info"></i> <strong>Short version:</strong> Use StudySync honestly and responsibly, only for its intended academic purpose. Don't misuse it, share access, or try to break it. That's the spirit of these terms.</p>
+        </div>
+      </div>
+
+      <!-- Eligibility -->
+      <div class="doc-section" id="eligibility">
+        <div class="doc-section-icon"><i class="fa-solid fa-user-check" aria-hidden="true"></i></div>
+        <h2>Eligibility</h2>
+        <p>StudySync is intended for use by Senior High School (SHS) students and their educators. You may use StudySync if:</p>
+        <ul>
+          <li>You are a student, teacher, or parent using StudySync for legitimate academic purposes.</li>
+          <li>If you are under 13, you must have parental or guardian consent to create an account.</li>
+          <li>You agree to provide accurate information when creating your account.</li>
+        </ul>
+        <p>By using StudySync, you represent that your use complies with these requirements.</p>
+      </div>
+
+      <!-- Account -->
+      <div class="doc-section" id="account">
+        <div class="doc-section-icon"><i class="fa-solid fa-circle-user" aria-hidden="true"></i></div>
+        <h2>Your Account</h2>
+        <p>When you create an account, you are responsible for:</p>
+        <ul>
+          <li>Providing accurate and truthful registration information.</li>
+          <li>Keeping your password secure and not sharing it with anyone.</li>
+          <li>All activity that occurs under your account.</li>
+          <li>Notifying us immediately if you suspect unauthorised access to your account.</li>
+        </ul>
+        <p>You may not create more than one account per person. Accounts are personal and non-transferable.</p>
+        <div class="warn-box">
+          <p><i class="fa-solid fa-triangle-exclamation"></i> Sharing your account credentials with others is a violation of these Terms and may result in your account being suspended.</p>
+        </div>
+      </div>
+
+      <!-- Acceptable Use -->
+      <div class="doc-section" id="acceptable-use">
+        <div class="doc-section-icon"><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i></div>
+        <h2>Acceptable Use</h2>
+        <p>You agree to use StudySync only for lawful academic purposes. You must not:</p>
+        <ul>
+          <li>Use StudySync in any way that violates applicable laws or regulations.</li>
+          <li>Attempt to gain unauthorised access to any part of the service, other accounts, or our servers.</li>
+          <li>Upload or transmit malicious code, viruses, or any content designed to harm the service or other users.</li>
+          <li>Scrape, copy, or attempt to reproduce StudySync's content, quiz questions, or features for commercial use.</li>
+          <li>Impersonate another person or misrepresent your identity.</li>
+          <li>Use automated tools, bots, or scripts to interact with StudySync without our express permission.</li>
+          <li>Interfere with or disrupt the integrity or performance of StudySync.</li>
+        </ul>
+        <div class="danger-box">
+          <p><i class="fa-solid fa-ban"></i> Violations of acceptable use may result in immediate account suspension or termination without notice.</p>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="doc-section" id="content">
+        <div class="doc-section-icon"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i></div>
+        <h2>Your Content</h2>
+        <p>StudySync allows you to create and store personal academic content including tasks, notes, reminders, and calendar events ("Your Content"). You retain ownership of all content you create.</p>
+        <p>By using StudySync, you grant us a limited, non-exclusive licence to store and display Your Content solely for the purpose of providing the service to you. We do not claim ownership of your notes, tasks, or any other content you create.</p>
+        <p>You are responsible for ensuring that Your Content does not violate any laws or the rights of others. You must not upload content that is unlawful, offensive, or harmful.</p>
+      </div>
+
+      <!-- Intellectual Property -->
+      <div class="doc-section" id="intellectual-property">
+        <div class="doc-section-icon"><i class="fa-solid fa-copyright" aria-hidden="true"></i></div>
+        <h2>Intellectual Property</h2>
+        <p>All elements of StudySync — including the software, design, quiz questions, user interface, logos, and text — are the intellectual property of StudySync and are protected by copyright and other applicable laws.</p>
+        <p>You may not copy, modify, distribute, sell, or create derivative works from any part of StudySync without our prior written consent.</p>
+        <p>The quiz questions and revision notes provided within StudySync are created for educational use on the platform only. They may not be exported, reproduced, or distributed elsewhere.</p>
+      </div>
+
+      <!-- Disclaimers -->
+      <div class="doc-section" id="disclaimers">
+        <div class="doc-section-icon"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i></div>
+        <h2>Disclaimers</h2>
+        <p>StudySync is provided on an <strong>"as is"</strong> basis without warranties of any kind, either express or implied. We do not warrant that:</p>
+        <ul>
+          <li>The service will be uninterrupted, error-free, or completely secure.</li>
+          <li>Quiz questions or revision notes are error-free or constitute official academic material.</li>
+          <li>The service will meet every individual academic requirement.</li>
+        </ul>
+        <p>StudySync is a study aid tool and is <strong>not</strong> a substitute for classroom instruction, textbooks, or official academic resources. Always verify important academic information with your teachers or official school materials.</p>
+        <div class="warn-box">
+          <p><i class="fa-solid fa-triangle-exclamation"></i> To the maximum extent permitted by law, StudySync is not liable for any indirect, incidental, or consequential damages arising from your use of the platform.</p>
+        </div>
+      </div>
+
+      <!-- Termination -->
+      <div class="doc-section" id="termination">
+        <div class="doc-section-icon"><i class="fa-solid fa-door-open" aria-hidden="true"></i></div>
+        <h2>Termination</h2>
+        <p>You may delete your account at any time from Settings → Danger Zone. Upon deletion, all your personal data will be permanently removed from our systems.</p>
+        <p>We reserve the right to suspend or terminate your account at our discretion if:</p>
+        <ul>
+          <li>You violate these Terms of Use.</li>
+          <li>Your account is used for abusive, fraudulent, or harmful activity.</li>
+          <li>We are required to do so by law.</li>
+        </ul>
+        <p>In the event of termination by us for cause, you will be notified where reasonably possible.</p>
+      </div>
+
+      <!-- Changes -->
+      <div class="doc-section" id="changes">
+        <div class="doc-section-icon"><i class="fa-solid fa-rotate" aria-hidden="true"></i></div>
+        <h2>Changes to These Terms</h2>
+        <p>We may revise these Terms of Use from time to time. The "Last updated" date at the top of this page will reflect when changes were made. If changes are material, we will notify you by email or through a notice within the app.</p>
+        <p>Your continued use of StudySync after any changes constitutes your acceptance of the revised Terms. If you do not agree with updated Terms, you should stop using StudySync and may delete your account.</p>
+      </div>
+
+      <!-- Contact -->
+      <div class="doc-section" id="contact">
+        <div class="doc-section-icon"><i class="fa-solid fa-envelope" aria-hidden="true"></i></div>
+        <h2>Contact Us</h2>
+        <p>If you have questions about these Terms of Use, please contact us:</p>
+        <div class="contact-card">
+          <div class="contact-icon"><i class="fa-solid fa-envelope" aria-hidden="true"></i></div>
+          <div class="contact-info">
+            <strong>Legal Enquiries</strong>
+            legal@studysync.app
+          </div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-icon"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></div>
+          <div class="contact-info">
+            <strong>StudySync</strong>
+            Academic productivity platform for SHS students
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="doc-footer">
+        <p>© 2026 StudySync. All rights reserved.</p>
+        <div class="footer-links">
+          <a href="index.html">Home</a>
+          <a href="policy.html">Privacy Policy</a>
+          <a href="login.html">Sign In</a>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="js/terms.js"></script>
+</body>
+</html>

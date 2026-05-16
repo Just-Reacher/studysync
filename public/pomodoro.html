@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudySync — Pomodoro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" type="image/png" href="/images/favicon.png">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #5B5BD6; --primary-soft: #7C7CF0; --primary-pale: #EEEEFF;
+      --accent: #22C9A5; --accent-pale: #E0FAF4;
+      --text-dark: #1A1A2E; --text-mid: #4A4A72; --text-light: #8888AA;
+      --bg: #F7F7FF; --bg-card: #FFFFFF;
+      --border: rgba(91,91,214,0.12); --border-input: rgba(91,91,214,0.18);
+      --shadow-sm: 0 2px 12px rgba(91,91,214,0.08);
+      --shadow-md: 0 8px 32px rgba(91,91,214,0.12);
+      --shadow-lg: 0 24px 64px rgba(91,91,214,0.16);
+      --sidebar-w: 240px;
+      --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px; --radius-xl: 32px;
+      --error: #E05475; --success: #22C9A5; --warn: #F59E0B;
+      /* mode colours */
+      --focus-color:  #5B5BD6;
+      --short-color:  #22C9A5;
+      --long-color:   #F59E0B;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-dark); min-height: 100vh; display: flex; overflow-x: hidden; }
+
+    .bg-blob { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; opacity: 0.35; }
+    .bg-blob--1 { width: 500px; height: 500px; background: radial-gradient(circle, #c5c5fa 0%, transparent 70%); top: -160px; left: -120px; }
+    .bg-blob--2 { width: 360px; height: 360px; background: radial-gradient(circle, #a0f5e0 0%, transparent 70%); bottom: 40px; right: -80px; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--bg-card); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s ease; }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 24px 20px 20px; text-decoration: none; border-bottom: 1px solid var(--border); }
+    .sidebar-logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); border-radius: 9px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(91,91,214,0.3); }
+    .sidebar-logo-icon i { color: #fff; font-size: 15px; }
+    .sidebar-logo-text { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--text-dark); }
+    .sidebar-logo-text span { color: var(--primary); }
+    .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); padding: 10px 10px 6px; margin-top: 6px; }
+    .nav-item { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: var(--radius-sm); text-decoration: none; font-size: 14px; color: var(--text-mid); transition: all 0.2s; position: relative; }
+    .nav-item i { width: 18px; text-align: center; font-size: 15px; color: var(--text-light); transition: color 0.2s; }
+    .nav-item:hover, .nav-item.active { background: var(--primary-pale); color: var(--primary); }
+    .nav-item:hover i, .nav-item.active i { color: var(--primary); }
+    .nav-item.active { font-weight: 500; }
+    .nav-item.active::before { content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 3px; background: var(--primary); border-radius: 0 3px 3px 0; }
+    .sidebar-footer { padding: 16px 12px; border-top: 1px solid var(--border); }
+    .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: background 0.2s; }
+    .sidebar-user:hover { background: var(--primary-pale); }
+    .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #fff; flex-shrink: 0; overflow: hidden; }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 13px; font-weight: 500; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 11px; color: var(--text-light); }
+    .logout-btn { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 14px; padding: 4px; transition: color 0.2s; }
+    .logout-btn:hover { color: var(--error); }
+
+    /* ── MAIN ── */
+    .main-content { margin-left: var(--sidebar-w); flex: 1; position: relative; z-index: 1; min-height: 100vh; }
+    .topbar { position: sticky; top: 0; background: rgba(247,247,255,0.88); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: 0 32px; height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; z-index: 40; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .menu-toggle { display: none; background: none; border: none; color: var(--text-dark); font-size: 18px; cursor: pointer; padding: 6px; }
+    .topbar-title { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--text-dark); letter-spacing: -0.3px; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .icon-btn { width: 38px; height: 38px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-mid); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; transition: all 0.2s; text-decoration: none; }
+    .icon-btn:hover { background: var(--primary-pale); color: var(--primary); }
+    .page-body { padding: 32px; max-width: 1000px; }
+
+    /* ── TWO-COLUMN ── */
+    .pomo-layout { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+
+    /* ── TIMER CARD ── */
+    .timer-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 40px 36px; box-shadow: var(--shadow-md); text-align: center; }
+
+    /* Mode tabs */
+    .mode-tabs { display: flex; background: var(--primary-pale); border-radius: 99px; padding: 4px; border: 1px solid var(--border); margin-bottom: 36px; }
+    .mode-tab { flex: 1; padding: 9px 8px; border-radius: 99px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; background: none; color: var(--text-light); font-family: 'DM Sans', sans-serif; transition: all 0.22s; white-space: nowrap; }
+    .mode-tab.active { background: var(--primary); color: #fff; box-shadow: 0 3px 12px rgba(91,91,214,0.3); }
+    .mode-tab.mode-short.active  { background: var(--accent); box-shadow: 0 3px 12px rgba(34,201,165,0.3); }
+    .mode-tab.mode-long.active   { background: var(--warn);   box-shadow: 0 3px 12px rgba(245,158,11,0.3); }
+
+    /* Circular timer */
+    .timer-circle-wrap { position: relative; width: 240px; height: 240px; margin: 0 auto 32px; }
+    .timer-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .timer-track { fill: none; stroke: var(--primary-pale); stroke-width: 8; }
+    .timer-progress { fill: none; stroke: var(--primary); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s linear, stroke 0.4s ease; }
+    .timer-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+    .timer-display { font-family: 'Instrument Serif', serif; font-size: 56px; color: var(--text-dark); line-height: 1; letter-spacing: -2px; }
+    .timer-mode-label { font-size: 12px; font-weight: 500; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; }
+
+    /* Breathing ring animation */
+    .timer-circle-wrap.breathing .timer-track { animation: breathe 4s ease-in-out infinite; }
+    @keyframes breathe { 0%,100% { opacity:0.4; } 50% { opacity:0.8; } }
+
+    /* Controls */
+    .timer-controls { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 28px; }
+    .ctrl-btn { width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--bg-card); color: var(--text-mid); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 17px; transition: all 0.2s; box-shadow: var(--shadow-sm); }
+    .ctrl-btn:hover { background: var(--primary-pale); color: var(--primary); border-color: rgba(91,91,214,0.25); }
+    .ctrl-btn.primary { width: 64px; height: 64px; font-size: 22px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); color: #fff; border: none; box-shadow: 0 6px 20px rgba(91,91,214,0.35); }
+    .ctrl-btn.primary:hover { transform: scale(1.06); box-shadow: 0 8px 28px rgba(91,91,214,0.45); }
+    .ctrl-btn.primary.running { background: linear-gradient(135deg, #E05475, #F472B6); box-shadow: 0 6px 20px rgba(224,84,117,0.35); }
+
+    /* Session dots */
+    .session-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 24px; }
+    .session-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--primary-pale); border: 1.5px solid var(--border); transition: all 0.3s; }
+    .session-dot.done { background: var(--primary); border-color: var(--primary); }
+    .session-dot.current { background: var(--primary-soft); border-color: var(--primary); transform: scale(1.2); }
+
+    /* Task for this session */
+    .session-task { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; color: var(--text-mid); cursor: pointer; transition: all 0.2s; }
+    .session-task:hover { border-color: rgba(91,91,214,0.22); background: #fff; }
+    .session-task i { color: var(--primary); font-size: 14px; }
+    .session-task span { flex: 1; }
+    .session-task .clear-task { color: var(--text-light); font-size: 12px; padding: 2px 6px; background: none; border: none; cursor: pointer; transition: color 0.2s; }
+    .session-task .clear-task:hover { color: var(--error); }
+
+    /* ── RIGHT PANEL ── */
+    .right-panel { display: flex; flex-direction: column; gap: 16px; }
+
+    .section-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .card-title { font-size: 14px; font-weight: 500; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
+    .card-title i { color: var(--primary); font-size: 13px; }
+    .card-body { padding: 18px 20px; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat-mini { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; text-align: center; }
+    .stat-mini-val { font-family: 'Instrument Serif', serif; font-size: 24px; color: var(--text-dark); line-height: 1; }
+    .stat-mini-label { font-size: 11px; color: var(--text-light); margin-top: 3px; }
+
+    /* Settings sliders */
+    .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-label { font-size: 13px; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
+    .setting-label i { font-size: 13px; width: 16px; text-align: center; }
+    .setting-label i.focus-icon { color: var(--primary); }
+    .setting-label i.short-icon { color: var(--accent); }
+    .setting-label i.long-icon  { color: var(--warn); }
+    .setting-controls { display: flex; align-items: center; gap: 8px; }
+    .setting-num { font-size: 14px; font-weight: 600; color: var(--text-dark); width: 28px; text-align: center; }
+    .setting-btn { width: 26px; height: 26px; border-radius: 7px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-mid); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+    .setting-btn:hover { background: var(--primary-pale); color: var(--primary); }
+
+    /* Toggle switch (sound) */
+    .toggle { position: relative; width: 36px; height: 20px; }
+    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider { position: absolute; inset: 0; background: #D1D5E8; border-radius: 99px; cursor: pointer; transition: background 0.25s; }
+    .toggle-slider::before { content: ''; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.25s; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+    .toggle input:checked + .toggle-slider { background: var(--primary); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+    /* Session log */
+    .session-log { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; }
+    .log-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; }
+    .log-icon { width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+    .log-icon.focus { background: var(--primary-pale); color: var(--primary); }
+    .log-icon.break { background: var(--accent-pale); color: var(--accent); }
+    .log-info { flex: 1; }
+    .log-title { font-weight: 500; color: var(--text-dark); }
+    .log-time  { color: var(--text-light); }
+    .log-duration { font-size: 11px; font-weight: 600; color: var(--text-mid); }
+
+    /* Task picker modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(26,26,46,0.35); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 28px 24px; max-width: 400px; width: 100%; box-shadow: var(--shadow-lg); animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1); max-height: 80vh; display: flex; flex-direction: column; }
+    @keyframes modalIn { from { opacity:0; transform:scale(0.92) translateY(14px); } to { opacity:1; transform:scale(1) translateY(0); } }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .modal-title { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--text-dark); }
+    .modal-close { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 18px; padding: 4px; border-radius: 6px; transition: all 0.2s; }
+    .modal-close:hover { background: var(--primary-pale); color: var(--primary); }
+    .task-picker-list { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .task-picker-item { display: flex; align-items: center; gap: 10px; padding: 11px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s; font-size: 13px; color: var(--text-dark); }
+    .task-picker-item:hover { background: var(--primary-pale); border-color: rgba(91,91,214,0.2); color: var(--primary); }
+    .task-picker-item i { color: var(--primary); font-size: 13px; }
+    .task-empty { text-align: center; padding: 24px; color: var(--text-light); font-size: 13px; }
+
+    /* Notification popup */
+    .notif-banner { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: var(--text-dark); color: #fff; padding: 14px 24px; border-radius: var(--radius-md); font-size: 14px; font-weight: 500; z-index: 200; display: none; white-space: nowrap; box-shadow: var(--shadow-lg); animation: bannerIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+    .notif-banner.show { display: flex; align-items: center; gap: 10px; }
+    .notif-banner.focus { background: linear-gradient(135deg, var(--primary), var(--primary-soft)); }
+    .notif-banner.break { background: linear-gradient(135deg, var(--accent), #16A34A); }
+    @keyframes bannerIn { from { opacity:0; transform:translateX(-50%) translateY(-20px) scale(0.95); } to { opacity:1; transform:translateX(-50%) translateY(0) scale(1); } }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(26,26,46,0.3); z-index: 49; backdrop-filter: blur(2px); }
+    .sidebar-overlay.show { display: block; }
+
+    @media (max-width: 900px)  { .pomo-layout { grid-template-columns: 1fr; } }
+    @media (max-width: 800px)  { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } .menu-toggle { display: block; } .topbar { padding: 0 20px; } .page-body { padding: 20px; } }
+    @media (max-width: 480px)  { .timer-card { padding: 28px 20px; } .timer-circle-wrap { width: 200px; height: 200px; } .timer-display { font-size: 46px; } }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+<body>
+  <div class="bg-blob bg-blob--1" aria-hidden="true"></div>
+  <div class="bg-blob bg-blob--2" aria-hidden="true"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <a href="dashboard.html" class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+      <span class="sidebar-logo-text">Study<span>Sync</span></span>
+    </a>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="quizzes.html"   class="nav-item"><i class="fa-solid fa-brain"></i> Quizzes</a>
+      <a href="notes.html"     class="nav-item"><i class="fa-solid fa-book-open"></i> Notes</a>
+      <a href="tasks.html"     class="nav-item"><i class="fa-solid fa-list-check"></i> Tasks</a>
+      <span class="nav-section-label">Track</span>
+      <a href="progress.html"  class="nav-item"><i class="fa-solid fa-chart-line"></i> Progress</a>
+      <a href="calendar.html"  class="nav-item"><i class="fa-solid fa-calendar-days"></i> Calendar</a>
+      <a href="reminders.html" class="nav-item"><i class="fa-solid fa-bell"></i> Reminders</a>
+      <span class="nav-section-label">Focus</span>
+      <a href="pomodoro.html"  class="nav-item active" aria-current="page"><i class="fa-solid fa-clock"></i> Pomodoro</a>
+      <span class="nav-section-label">Account</span>
+      <a href="settings.html"  class="nav-item"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="sidebarAvatar"></div>
+        <div class="user-info">
+          <div class="user-name" id="sidebarUserName">Loading…</div>
+          <div class="user-role">Student</div>
+        </div>
+        <button class="logout-btn" id="logoutBtn" aria-label="Log out" title="Log out">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar"><i class="fa-solid fa-bars"></i></button>
+        <h1 class="topbar-title">Focus Timer</h1>
+      </div>
+      <div class="topbar-right">
+        <a href="dashboard.html" class="icon-btn" aria-label="Dashboard"><i class="fa-solid fa-house"></i></a>
+        <a href="settings.html"  class="icon-btn" aria-label="Settings"><i class="fa-solid fa-gear"></i></a>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <div class="pomo-layout">
+
+        <!-- LEFT: TIMER -->
+        <div class="timer-card">
+          <!-- Mode tabs -->
+          <div class="mode-tabs" role="tablist" aria-label="Timer mode">
+            <button class="mode-tab active"     data-mode="focus" role="tab" aria-selected="true">Focus</button>
+            <button class="mode-tab mode-short" data-mode="short" role="tab" aria-selected="false">Short Break</button>
+            <button class="mode-tab mode-long"  data-mode="long"  role="tab" aria-selected="false">Long Break</button>
+          </div>
+
+          <!-- Circular countdown -->
+          <div class="timer-circle-wrap" id="timerCircleWrap" aria-live="polite" aria-atomic="true">
+            <svg class="timer-svg" viewBox="0 0 240 240" aria-hidden="true">
+              <circle class="timer-track"    cx="120" cy="120" r="108" />
+              <circle class="timer-progress" cx="120" cy="120" r="108" id="timerProgress"
+                stroke-dasharray="678.58" stroke-dashoffset="0" />
+            </svg>
+            <div class="timer-inner">
+              <div class="timer-display"    id="timerDisplay">25:00</div>
+              <div class="timer-mode-label" id="timerModeLabel">Focus Time</div>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="timer-controls">
+            <button class="ctrl-btn" id="btnReset"  aria-label="Reset timer" title="Reset">
+              <i class="fa-solid fa-rotate-left"></i>
+            </button>
+            <button class="ctrl-btn primary" id="btnPlayPause" aria-label="Start timer">
+              <i class="fa-solid fa-play" id="playIcon"></i>
+            </button>
+            <button class="ctrl-btn" id="btnSkip" aria-label="Skip to next" title="Skip">
+              <i class="fa-solid fa-forward-step"></i>
+            </button>
+          </div>
+
+          <!-- Session dots -->
+          <div class="session-dots" id="sessionDots" aria-label="Session progress"></div>
+
+          <!-- Current task -->
+          <div class="session-task" id="sessionTask" role="button" tabindex="0" aria-label="Set focus task">
+            <i class="fa-solid fa-list-check"></i>
+            <span id="sessionTaskLabel">Set a task for this session…</span>
+            <button class="clear-task" id="clearTaskBtn" aria-label="Clear task" style="display:none;">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="right-panel">
+
+          <!-- Today's stats -->
+          <div class="section-card">
+            <div class="card-header">
+              <span class="card-title"><i class="fa-solid fa-chart-bar"></i> Today's Stats</span>
+            </div>
+            <div class="card-body">
+              <div class="stats-grid">
+                <div class="stat-mini">
+                  <div class="stat-mini-val" id="statSessions">0</div>
+                  <div class="stat-mini-label">Sessions</div>
+                </div>
+                <div class="stat-mini">
+                  <div class="stat-mini-val" id="statFocusMin">0m</div>
+                  <div class="stat-mini-label">Focus Time</div>
+                </div>
+                <div class="stat-mini">
+                  <div class="stat-mini-val" id="statBreaks">0</div>
+                  <div class="stat-mini-label">Breaks</div>
+                </div>
+                <div class="stat-mini">
+                  <div class="stat-mini-val" id="statGoal">—</div>
+                  <div class="stat-mini-label">Daily Goal</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Timer settings -->
+          <div class="section-card">
+            <div class="card-header">
+              <span class="card-title"><i class="fa-solid fa-sliders"></i> Settings</span>
+            </div>
+            <div class="card-body">
+              <div class="setting-row">
+                <span class="setting-label"><i class="fa-solid fa-brain focus-icon"></i> Focus</span>
+                <div class="setting-controls">
+                  <button class="setting-btn" data-target="focus" data-action="dec">−</button>
+                  <span class="setting-num" id="settingFocus">25</span>
+                  <button class="setting-btn" data-target="focus" data-action="inc">+</button>
+                  <span style="font-size:11px;color:var(--text-light);">min</span>
+                </div>
+              </div>
+              <div class="setting-row">
+                <span class="setting-label"><i class="fa-solid fa-mug-hot short-icon"></i> Short Break</span>
+                <div class="setting-controls">
+                  <button class="setting-btn" data-target="short" data-action="dec">−</button>
+                  <span class="setting-num" id="settingShort">5</span>
+                  <button class="setting-btn" data-target="short" data-action="inc">+</button>
+                  <span style="font-size:11px;color:var(--text-light);">min</span>
+                </div>
+              </div>
+              <div class="setting-row">
+                <span class="setting-label"><i class="fa-solid fa-couch long-icon"></i> Long Break</span>
+                <div class="setting-controls">
+                  <button class="setting-btn" data-target="long" data-action="dec">−</button>
+                  <span class="setting-num" id="settingLong">15</span>
+                  <button class="setting-btn" data-target="long" data-action="inc">+</button>
+                  <span style="font-size:11px;color:var(--text-light);">min</span>
+                </div>
+              </div>
+              <div class="setting-row">
+                <span class="setting-label"><i class="fa-solid fa-layer-group" style="color:var(--primary);"></i> Sessions before long break</span>
+                <div class="setting-controls">
+                  <button class="setting-btn" data-target="rounds" data-action="dec">−</button>
+                  <span class="setting-num" id="settingRounds">4</span>
+                  <button class="setting-btn" data-target="rounds" data-action="inc">+</button>
+                </div>
+              </div>
+              <div class="setting-row">
+                <span class="setting-label"><i class="fa-solid fa-volume-high" style="color:var(--primary);"></i> Sound</span>
+                <label class="toggle" aria-label="Toggle sound">
+                  <input type="checkbox" id="soundToggle" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Session log -->
+          <div class="section-card">
+            <div class="card-header">
+              <span class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Session Log</span>
+              <button class="icon-btn" id="clearLogBtn" aria-label="Clear log" title="Clear log" style="width:28px;height:28px;font-size:12px;">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+            <div class="card-body" style="padding:12px 16px;">
+              <div class="session-log" id="sessionLog">
+                <div class="task-empty">No sessions yet today.</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TASK PICKER MODAL -->
+  <div class="modal-overlay" id="taskModal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="taskModalTitle">Pick a Task</h2>
+        <button class="modal-close" id="taskModalClose" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="task-picker-list" id="taskPickerList" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATION BANNER -->
+  <div class="notif-banner" id="notifBanner" role="alert" aria-live="assertive"></div>
+
+  <script src="../js/pomodoro.js"></script>
+</body>
+</html>

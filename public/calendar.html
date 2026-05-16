@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudySync — Calendar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" type="image/png" href="/images/favicon.png">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #5B5BD6; --primary-soft: #7C7CF0; --primary-pale: #EEEEFF;
+      --accent: #22C9A5; --accent-pale: #E0FAF4;
+      --text-dark: #1A1A2E; --text-mid: #4A4A72; --text-light: #8888AA;
+      --bg: #F7F7FF; --bg-card: #FFFFFF;
+      --border: rgba(91,91,214,0.12); --border-input: rgba(91,91,214,0.18);
+      --shadow-sm: 0 2px 12px rgba(91,91,214,0.08);
+      --shadow-md: 0 8px 32px rgba(91,91,214,0.12);
+      --shadow-lg: 0 24px 64px rgba(91,91,214,0.16);
+      --sidebar-w: 240px;
+      --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px; --radius-xl: 32px;
+      --error: #E05475; --success: #22C9A5; --warn: #F59E0B;
+      /* event colours */
+      --ev-quiz:     #5B5BD6; --ev-quiz-bg:     #EEEEFF;
+      --ev-task:     #22C9A5; --ev-task-bg:     #E0FAF4;
+      --ev-reminder: #F59E0B; --ev-reminder-bg: #FFF5E0;
+      --ev-study:    #C026D3; --ev-study-bg:    #FDF4FF;
+      --ev-school:   #E05475; --ev-school-bg:   #FFF0F3;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-dark); min-height: 100vh; display: flex; overflow-x: hidden; }
+
+    .bg-blob { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; opacity: 0.35; }
+    .bg-blob--1 { width: 500px; height: 500px; background: radial-gradient(circle, #c5c5fa 0%, transparent 70%); top: -160px; left: -120px; }
+    .bg-blob--2 { width: 360px; height: 360px; background: radial-gradient(circle, #a0f5e0 0%, transparent 70%); bottom: 40px; right: -80px; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--bg-card); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s ease; }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 24px 20px 20px; text-decoration: none; border-bottom: 1px solid var(--border); }
+    .sidebar-logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); border-radius: 9px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(91,91,214,0.3); }
+    .sidebar-logo-icon i { color: #fff; font-size: 15px; }
+    .sidebar-logo-text { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--text-dark); }
+    .sidebar-logo-text span { color: var(--primary); }
+    .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); padding: 10px 10px 6px; margin-top: 6px; }
+    .nav-item { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: var(--radius-sm); text-decoration: none; font-size: 14px; color: var(--text-mid); transition: all 0.2s; position: relative; }
+    .nav-item i { width: 18px; text-align: center; font-size: 15px; color: var(--text-light); transition: color 0.2s; }
+    .nav-item:hover, .nav-item.active { background: var(--primary-pale); color: var(--primary); }
+    .nav-item:hover i, .nav-item.active i { color: var(--primary); }
+    .nav-item.active { font-weight: 500; }
+    .nav-item.active::before { content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 3px; background: var(--primary); border-radius: 0 3px 3px 0; }
+    .sidebar-footer { padding: 16px 12px; border-top: 1px solid var(--border); }
+    .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: background 0.2s; }
+    .sidebar-user:hover { background: var(--primary-pale); }
+    .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #fff; flex-shrink: 0; overflow: hidden; }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 13px; font-weight: 500; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 11px; color: var(--text-light); }
+    .logout-btn { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 14px; padding: 4px; transition: color 0.2s; }
+    .logout-btn:hover { color: var(--error); }
+
+    /* ── MAIN ── */
+    .main-content { margin-left: var(--sidebar-w); flex: 1; position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+    .topbar { position: sticky; top: 0; background: rgba(247,247,255,0.88); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: 0 32px; height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; z-index: 40; flex-shrink: 0; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .menu-toggle { display: none; background: none; border: none; color: var(--text-dark); font-size: 18px; cursor: pointer; padding: 6px; }
+    .topbar-title { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--text-dark); letter-spacing: -0.3px; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .icon-btn { width: 38px; height: 38px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-mid); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; transition: all 0.2s; text-decoration: none; }
+    .icon-btn:hover { background: var(--primary-pale); color: var(--primary); }
+
+    /* ── CALENDAR LAYOUT ── */
+    .calendar-wrapper { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── LEFT: MAIN CALENDAR ── */
+    .cal-main { flex: 1; display: flex; flex-direction: column; padding: 24px 28px; overflow-y: auto; }
+
+    /* Month nav */
+    .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .cal-nav-center { display: flex; align-items: center; gap: 12px; }
+    .cal-month-title { font-family: 'Instrument Serif', serif; font-size: 26px; color: var(--text-dark); letter-spacing: -0.4px; }
+    .cal-arrow { width: 36px; height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-mid); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.2s; }
+    .cal-arrow:hover { background: var(--primary-pale); color: var(--primary); }
+    .cal-today-btn { padding: 8px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-mid); cursor: pointer; transition: all 0.2s; }
+    .cal-today-btn:hover { background: var(--primary-pale); color: var(--primary); border-color: transparent; }
+
+    /* View tabs */
+    .view-tabs { display: flex; background: var(--primary-pale); border-radius: 99px; padding: 3px; border: 1px solid var(--border); }
+    .view-tab { padding: 6px 16px; border-radius: 99px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; background: none; color: var(--text-light); font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+    .view-tab.active { background: var(--primary); color: #fff; box-shadow: 0 3px 10px rgba(91,91,214,0.25); }
+
+    /* Day labels */
+    .cal-day-labels { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; margin-bottom: 6px; }
+    .cal-day-label { text-align: center; font-size: 11px; font-weight: 600; color: var(--text-light); text-transform: uppercase; padding: 6px 0; letter-spacing: 0.5px; }
+
+    /* Month grid */
+    .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; flex: 1; }
+    .cal-cell { min-height: 90px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; cursor: pointer; transition: all 0.15s; display: flex; flex-direction: column; gap: 3px; }
+    .cal-cell:hover { border-color: rgba(91,91,214,0.25); background: #fafafe; }
+    .cal-cell.other-month { opacity: 0.4; }
+    .cal-cell.today { border-color: var(--primary); background: var(--primary-pale); }
+    .cal-cell.selected { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(91,91,214,0.2); }
+
+    .cell-date { font-size: 13px; font-weight: 500; color: var(--text-mid); width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 50%; flex-shrink: 0; }
+    .cal-cell.today .cell-date { background: var(--primary); color: #fff; }
+
+    .cell-events { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow: hidden; }
+    .cell-event { font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; transition: opacity 0.15s; }
+    .cell-event:hover { opacity: 0.8; }
+    .cell-event.ev-quiz     { background: var(--ev-quiz-bg);     color: var(--ev-quiz); }
+    .cell-event.ev-task     { background: var(--ev-task-bg);     color: var(--ev-task); }
+    .cell-event.ev-reminder { background: var(--ev-reminder-bg); color: var(--ev-reminder); }
+    .cell-event.ev-study    { background: var(--ev-study-bg);    color: var(--ev-study); }
+    .cell-event.ev-school   { background: var(--ev-school-bg);   color: var(--ev-school); }
+    .cell-more { font-size: 10px; color: var(--text-light); padding: 1px 4px; cursor: pointer; }
+    .cell-more:hover { color: var(--primary); }
+
+    /* Week view */
+    .week-view { display: none; }
+    .week-view.active { display: flex; flex-direction: column; gap: 4px; }
+    .week-row { display: grid; grid-template-columns: 60px repeat(7,1fr); gap: 2px; }
+    .week-time { font-size: 11px; color: var(--text-light); text-align: right; padding-right: 10px; line-height: 40px; }
+    .week-cell { min-height: 40px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 5px; padding: 3px; position: relative; }
+    .week-cell.today-col { background: var(--primary-pale); border-color: rgba(91,91,214,0.2); }
+    .week-day-header { font-size: 11px; font-weight: 600; color: var(--text-mid); text-align: center; padding: 6px 0; }
+    .week-day-header.today { color: var(--primary); }
+
+    /* ── RIGHT: DAY PANEL ── */
+    .day-panel { width: 300px; background: var(--bg-card); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .day-panel-header { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); }
+    .day-panel-date { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--text-dark); }
+    .day-panel-sub  { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+    .day-panel-body { flex: 1; overflow-y: auto; padding: 16px; }
+    .day-events-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .day-event { padding: 12px 14px; border-radius: var(--radius-sm); border-left: 3px solid; background: var(--bg); cursor: pointer; transition: all 0.2s; }
+    .day-event:hover { transform: translateX(3px); }
+    .day-event.ev-quiz     { border-color: var(--ev-quiz);     background: var(--ev-quiz-bg); }
+    .day-event.ev-task     { border-color: var(--ev-task);     background: var(--ev-task-bg); }
+    .day-event.ev-reminder { border-color: var(--ev-reminder); background: var(--ev-reminder-bg); }
+    .day-event.ev-study    { border-color: var(--ev-study);    background: var(--ev-study-bg); }
+    .day-event.ev-school   { border-color: var(--ev-school);   background: var(--ev-school-bg); }
+
+    .day-event-title { font-size: 13px; font-weight: 500; color: var(--text-dark); margin-bottom: 2px; }
+    .day-event-meta  { font-size: 11px; color: var(--text-mid); }
+    .day-event-type  { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 4px; }
+    .day-event.ev-quiz .day-event-type     { color: var(--ev-quiz); }
+    .day-event.ev-task .day-event-type     { color: var(--ev-task); }
+    .day-event.ev-reminder .day-event-type { color: var(--ev-reminder); }
+    .day-event.ev-study .day-event-type    { color: var(--ev-study); }
+    .day-event.ev-school .day-event-type   { color: var(--ev-school); }
+
+    .day-panel-footer { padding: 14px 16px; border-top: 1px solid var(--border); }
+    .btn-add-event { width: 100%; padding: 11px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); color: #fff; border: none; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; box-shadow: 0 4px 14px rgba(91,91,214,0.28); transition: all 0.2s; }
+    .btn-add-event:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(91,91,214,0.38); }
+
+    /* Legend */
+    .cal-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-mid); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── EVENT MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(26,26,46,0.35); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 36px 32px; max-width: 480px; width: 100%; box-shadow: var(--shadow-lg); animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes modalIn { from { opacity:0; transform:scale(0.92) translateY(14px); } to { opacity:1; transform:scale(1) translateY(0); } }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .modal-title { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--text-dark); letter-spacing: -0.3px; }
+    .modal-close { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 18px; padding: 4px; border-radius: 6px; transition: all 0.2s; }
+    .modal-close:hover { color: var(--text-dark); background: var(--primary-pale); }
+
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-mid); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.4px; }
+    .form-input, .form-select, .form-textarea { width: 100%; padding: 11px 14px; border: 1px solid var(--border-input); border-radius: var(--radius-sm); background: var(--bg); font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-dark); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(91,91,214,0.1); }
+    .form-input::placeholder, .form-textarea::placeholder { color: var(--text-light); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-error { font-size: 11px; color: var(--error); margin-top: 5px; min-height: 15px; }
+    .modal-footer { display: flex; gap: 10px; margin-top: 24px; }
+    .btn-cancel { flex: 1; padding: 12px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-mid); transition: all 0.2s; }
+    .btn-cancel:hover { background: var(--primary-pale); color: var(--primary); border-color: transparent; }
+    .btn-save { flex: 2; padding: 12px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; border: none; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); color: #fff; box-shadow: 0 4px 14px rgba(91,91,214,0.28); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-save:hover { transform: translateY(-1px); }
+    .btn-save:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-save .spinner { display: none; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; }
+    .btn-save.loading .btn-label { display: none; }
+    .btn-save.loading .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-delete-event { flex: 1; padding: 12px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; border: none; background: #FFF0F3; color: var(--error); transition: all 0.2s; }
+    .btn-delete-event:hover { background: var(--error); color: #fff; }
+
+    /* Skeleton / empty */
+    .skeleton { background: linear-gradient(90deg, var(--primary-pale) 25%, #e8e8ff 50%, var(--primary-pale) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; }
+    @keyframes shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
+    .day-empty { text-align: center; padding: 32px 12px; color: var(--text-light); }
+    .day-empty i { font-size: 24px; margin-bottom: 8px; display: block; opacity: 0.3; }
+    .day-empty p { font-size: 12px; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--text-dark); color: #fff; padding: 12px 20px; border-radius: var(--radius-sm); font-size: 13px; z-index: 300; display: none; white-space: nowrap; box-shadow: var(--shadow-md); animation: toastIn 0.3s ease; }
+    .toast.show { display: flex; align-items: center; gap: 8px; }
+    .toast.success { background: #0E9A7D; }
+    .toast.error   { background: var(--error); }
+    @keyframes toastIn { from { opacity:0; transform: translateX(-50%) translateY(10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(26,26,46,0.3); z-index: 49; backdrop-filter: blur(2px); }
+    .sidebar-overlay.show { display: block; }
+
+    @media (max-width: 1000px) { .day-panel { display: none; } }
+    @media (max-width: 800px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } .menu-toggle { display: block; } .topbar { padding: 0 20px; } .cal-main { padding: 16px; } .cal-cell { min-height: 60px; } }
+    @media (max-width: 520px) { .form-row { grid-template-columns: 1fr; } .modal { padding: 28px 20px; } .view-tabs { display: none; } }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+<body>
+  <div class="bg-blob bg-blob--1" aria-hidden="true"></div>
+  <div class="bg-blob bg-blob--2" aria-hidden="true"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <a href="dashboard.html" class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+      <span class="sidebar-logo-text">Study<span>Sync</span></span>
+    </a>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="quizzes.html"   class="nav-item"><i class="fa-solid fa-brain"></i> Quizzes</a>
+      <a href="notes.html"     class="nav-item"><i class="fa-solid fa-book-open"></i> Notes</a>
+      <a href="tasks.html"     class="nav-item"><i class="fa-solid fa-list-check"></i> Tasks</a>
+      <span class="nav-section-label">Track</span>
+      <a href="progress.html"  class="nav-item"><i class="fa-solid fa-chart-line"></i> Progress</a>
+      <a href="calendar.html"  class="nav-item active" aria-current="page"><i class="fa-solid fa-calendar-days"></i> Calendar</a>
+      <a href="reminders.html" class="nav-item"><i class="fa-solid fa-bell"></i> Reminders</a>
+      <span class="nav-section-label">Focus</span>
+      <a href="pomodoro.html"  class="nav-item"><i class="fa-solid fa-clock"></i> Pomodoro</a>
+      <span class="nav-section-label">Account</span>
+      <a href="settings.html"  class="nav-item"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="sidebarAvatar"></div>
+        <div class="user-info">
+          <div class="user-name" id="sidebarUserName">Loading…</div>
+          <div class="user-role">Student</div>
+        </div>
+        <button class="logout-btn" id="logoutBtn" aria-label="Log out" title="Log out">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar"><i class="fa-solid fa-bars"></i></button>
+        <h1 class="topbar-title">Calendar</h1>
+      </div>
+      <div class="topbar-right">
+        <a href="dashboard.html" class="icon-btn" aria-label="Dashboard"><i class="fa-solid fa-house"></i></a>
+        <a href="settings.html"  class="icon-btn" aria-label="Settings"><i class="fa-solid fa-gear"></i></a>
+      </div>
+    </header>
+
+    <div class="calendar-wrapper">
+      <!-- MAIN CALENDAR -->
+      <div class="cal-main">
+        <!-- Nav -->
+        <div class="cal-nav">
+          <div class="cal-nav-center">
+            <button class="cal-arrow" id="calPrev" aria-label="Previous month"><i class="fa-solid fa-chevron-left"></i></button>
+            <h2 class="cal-month-title" id="calMonthTitle"></h2>
+            <button class="cal-arrow" id="calNext" aria-label="Next month"><i class="fa-solid fa-chevron-right"></i></button>
+            <button class="cal-today-btn" id="calTodayBtn">Today</button>
+          </div>
+          <div class="view-tabs" role="tablist" aria-label="Calendar view">
+            <button class="view-tab active" data-view="month" role="tab" aria-selected="true">Month</button>
+            <button class="view-tab" data-view="week" role="tab" aria-selected="false">Week</button>
+          </div>
+        </div>
+
+        <!-- Day labels -->
+        <div class="cal-day-labels" aria-hidden="true">
+          <div class="cal-day-label">Sun</div>
+          <div class="cal-day-label">Mon</div>
+          <div class="cal-day-label">Tue</div>
+          <div class="cal-day-label">Wed</div>
+          <div class="cal-day-label">Thu</div>
+          <div class="cal-day-label">Fri</div>
+          <div class="cal-day-label">Sat</div>
+        </div>
+
+        <!-- Month grid -->
+        <div class="cal-grid" id="calGrid" role="grid" aria-label="Monthly calendar" aria-live="polite"></div>
+
+        <!-- Week view -->
+        <div class="week-view" id="weekView"></div>
+
+        <!-- Legend -->
+        <div class="cal-legend" aria-label="Event type legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--ev-quiz)"></div> Quiz</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--ev-task)"></div> Task</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--ev-reminder)"></div> Reminder</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--ev-study)"></div> Study</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--ev-school)"></div> School</div>
+        </div>
+      </div>
+
+      <!-- DAY PANEL -->
+      <aside class="day-panel" id="dayPanel" aria-label="Selected day events">
+        <div class="day-panel-header">
+          <div class="day-panel-date" id="dayPanelDate">Select a day</div>
+          <div class="day-panel-sub"  id="dayPanelSub"></div>
+        </div>
+        <div class="day-panel-body">
+          <div class="day-events-list" id="dayEventsList">
+            <div class="day-empty"><i class="fa-regular fa-calendar"></i><p>Click a day to see events</p></div>
+          </div>
+        </div>
+        <div class="day-panel-footer">
+          <button class="btn-add-event" id="btnAddEvent">
+            <i class="fa-solid fa-plus"></i> Add Event
+          </button>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- EVENT MODAL -->
+  <div class="modal-overlay" id="eventModal" role="dialog" aria-modal="true" aria-labelledby="eventModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="eventModalTitle">New Event</h2>
+        <button class="modal-close" id="eventModalClose" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="eventForm" novalidate>
+        <input type="hidden" id="eventId" />
+        <div class="form-group">
+          <label class="form-label" for="eventTitle">Title <span aria-hidden="true">*</span></label>
+          <input type="text" class="form-input" id="eventTitle" placeholder="e.g. Mathematics Quiz" required />
+          <div class="form-error" id="eventTitleError"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="eventType">Type</label>
+            <select class="form-select" id="eventType">
+              <option value="quiz">Quiz</option>
+              <option value="task">Task</option>
+              <option value="reminder">Reminder</option>
+              <option value="study">Study Session</option>
+              <option value="school">School</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="eventDate">Date <span aria-hidden="true">*</span></label>
+            <input type="date" class="form-input" id="eventDate" required />
+            <div class="form-error" id="eventDateError"></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="eventStartTime">Start Time</label>
+            <input type="time" class="form-input" id="eventStartTime" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="eventEndTime">End Time</label>
+            <input type="time" class="form-input" id="eventEndTime" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="eventNote">Note (optional)</label>
+          <input type="text" class="form-input" id="eventNote" placeholder="Add a note…" />
+        </div>
+        <div class="modal-footer" id="eventModalFooter">
+          <button type="button" class="btn-cancel" id="eventBtnCancel">Cancel</button>
+          <button type="submit" class="btn-save" id="eventBtnSave">
+            <span class="btn-label">Save Event</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/calendar.js"></script>
+</body>
+</html>

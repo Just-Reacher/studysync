@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudySync — Privacy Policy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" type="image/png" href="/images/favicon.png">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #5B5BD6; --primary-soft: #7C7CF0; --primary-pale: #EEEEFF;
+      --accent: #22C9A5; --accent-pale: #E0FAF4;
+      --text-dark: #1A1A2E; --text-mid: #4A4A72; --text-light: #8888AA;
+      --bg: #F7F7FF; --bg-card: #FFFFFF;
+      --border: rgba(91,91,214,0.12);
+      --shadow-sm: 0 2px 12px rgba(91,91,214,0.08);
+      --shadow-md: 0 8px 32px rgba(91,91,214,0.12);
+      --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px; --radius-xl: 32px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-dark); min-height: 100vh; overflow-x: hidden; }
+
+    .bg-blob { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; opacity: 0.35; }
+    .bg-blob--1 { width: 500px; height: 500px; background: radial-gradient(circle, #c5c5fa 0%, transparent 70%); top: -160px; left: -120px; }
+    .bg-blob--2 { width: 360px; height: 360px; background: radial-gradient(circle, #a0f5e0 0%, transparent 70%); bottom: 40px; right: -80px; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 6%; height: 66px;
+      background: rgba(247,247,255,0.82); backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); border-radius: 9px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(91,91,214,0.3); }
+    .nav-logo-icon i { color: #fff; font-size: 15px; }
+    .nav-logo-text { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--text-dark); }
+    .nav-logo-text span { color: var(--primary); }
+    .nav-links { display: flex; align-items: center; gap: 16px; }
+    .nav-link { font-size: 13px; color: var(--text-mid); text-decoration: none; transition: color 0.2s; }
+    .nav-link:hover { color: var(--primary); }
+    .nav-btn { padding: 9px 20px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); color: #fff; border: none; border-radius: 99px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; box-shadow: 0 4px 14px rgba(91,91,214,0.28); transition: all 0.2s; }
+    .nav-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(91,91,214,0.38); }
+
+    /* ── PAGE LAYOUT ── */
+    .page-wrap { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 110px 24px 80px; display: grid; grid-template-columns: 220px 1fr; gap: 32px; align-items: start; }
+
+    /* ── TOC SIDEBAR ── */
+    .toc { position: sticky; top: 90px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); }
+    .toc-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); margin-bottom: 12px; }
+    .toc-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .toc-item a { font-size: 12px; color: var(--text-mid); text-decoration: none; display: block; padding: 5px 8px; border-radius: 6px; transition: all 0.2s; line-height: 1.4; }
+    .toc-item a:hover { background: var(--primary-pale); color: var(--primary); }
+    .toc-item a.active { background: var(--primary-pale); color: var(--primary); font-weight: 500; }
+
+    /* ── CONTENT ── */
+    .doc-content { display: flex; flex-direction: column; gap: 32px; }
+
+    /* Hero */
+    .doc-hero { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-soft) 100%); border-radius: var(--radius-lg); padding: 36px 32px; color: #fff; box-shadow: 0 8px 28px rgba(91,91,214,0.28); }
+    .doc-hero-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.75; margin-bottom: 10px; }
+    .doc-hero-title { font-family: 'Instrument Serif', serif; font-size: clamp(28px, 4vw, 38px); letter-spacing: -0.5px; margin-bottom: 10px; }
+    .doc-hero-meta { font-size: 13px; opacity: 0.75; display: flex; align-items: center; gap: 8px; }
+    .doc-hero-meta i { font-size: 12px; }
+
+    /* Section card */
+    .doc-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 28px 30px; box-shadow: var(--shadow-sm); scroll-margin-top: 90px; }
+    .doc-section-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-pale); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 17px; margin-bottom: 14px; }
+    .doc-section h2 { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--text-dark); letter-spacing: -0.3px; margin-bottom: 14px; }
+    .doc-section p { font-size: 14px; color: var(--text-mid); line-height: 1.8; margin-bottom: 12px; }
+    .doc-section p:last-child { margin-bottom: 0; }
+    .doc-section ul { padding-left: 18px; display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+    .doc-section ul li { font-size: 14px; color: var(--text-mid); line-height: 1.7; }
+    .doc-section ul li::marker { color: var(--primary); }
+    .doc-section strong { color: var(--text-dark); font-weight: 500; }
+    .doc-section a { color: var(--primary); text-decoration: none; }
+    .doc-section a:hover { text-decoration: underline; }
+
+    /* Highlight box */
+    .highlight-box { background: var(--primary-pale); border: 1px solid rgba(91,91,214,0.15); border-radius: var(--radius-sm); padding: 16px 18px; margin: 14px 0; }
+    .highlight-box p { font-size: 13px; color: var(--primary); margin: 0; line-height: 1.65; }
+    .highlight-box i { margin-right: 6px; }
+
+    .accent-box { background: var(--accent-pale); border: 1px solid rgba(34,201,165,0.2); border-radius: var(--radius-sm); padding: 16px 18px; margin: 14px 0; }
+    .accent-box p { font-size: 13px; color: #0A6652; margin: 0; line-height: 1.65; }
+
+    /* Contact card */
+    .contact-card { display: flex; align-items: center; gap: 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px 18px; margin-top: 14px; }
+    .contact-icon { width: 38px; height: 38px; border-radius: 9px; background: var(--primary-pale); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .contact-info { font-size: 13px; color: var(--text-mid); }
+    .contact-info strong { display: block; color: var(--text-dark); font-weight: 500; margin-bottom: 2px; }
+
+    /* Footer */
+    .doc-footer { text-align: center; padding: 32px 0 0; border-top: 1px solid var(--border); margin-top: 8px; }
+    .doc-footer p { font-size: 13px; color: var(--text-light); margin-bottom: 12px; }
+    .footer-links { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+    .footer-links a { font-size: 13px; color: var(--primary); text-decoration: none; transition: opacity 0.2s; }
+    .footer-links a:hover { opacity: 0.7; }
+
+    @media (max-width: 760px) { .page-wrap { grid-template-columns: 1fr; padding-top: 90px; } .toc { position: static; } }
+    @media (max-width: 480px) { .doc-hero { padding: 26px 22px; } .doc-section { padding: 22px 20px; } nav { padding: 0 4%; } .nav-links .nav-link { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="bg-blob bg-blob--1" aria-hidden="true"></div>
+  <div class="bg-blob bg-blob--2" aria-hidden="true"></div>
+
+  <!-- NAV -->
+  <nav role="navigation" aria-label="Main navigation">
+    <a href="index.html" class="nav-logo" aria-label="StudySync Home">
+      <div class="nav-logo-icon" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></div>
+      <span class="nav-logo-text">Study<span>Sync</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="terms.html"  class="nav-link">Terms of Use</a>
+      <a href="login.html"  class="nav-btn">Sign In</a>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+
+    <!-- TOC -->
+    <aside class="toc" aria-label="Table of contents">
+      <div class="toc-title">On this page</div>
+      <ul class="toc-list" role="list">
+        <li class="toc-item"><a href="#overview">Overview</a></li>
+        <li class="toc-item"><a href="#data-collected">Data We Collect</a></li>
+        <li class="toc-item"><a href="#how-we-use">How We Use It</a></li>
+        <li class="toc-item"><a href="#data-storage">Data Storage</a></li>
+        <li class="toc-item"><a href="#sharing">Data Sharing</a></li>
+        <li class="toc-item"><a href="#your-rights">Your Rights</a></li>
+        <li class="toc-item"><a href="#cookies">Cookies</a></li>
+        <li class="toc-item"><a href="#children">Children's Privacy</a></li>
+        <li class="toc-item"><a href="#changes">Policy Changes</a></li>
+        <li class="toc-item"><a href="#contact">Contact</a></li>
+      </ul>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="doc-content">
+
+      <!-- Hero -->
+      <div class="doc-hero">
+        <div class="doc-hero-label">Legal</div>
+        <h1 class="doc-hero-title">Privacy Policy</h1>
+        <div class="doc-hero-meta">
+          <i class="fa-regular fa-calendar"></i> Last updated: May 2026
+          &nbsp;·&nbsp;
+          <i class="fa-regular fa-clock"></i> 5 min read
+        </div>
+      </div>
+
+      <!-- Overview -->
+      <div class="doc-section" id="overview">
+        <div class="doc-section-icon"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></div>
+        <h2>Overview</h2>
+        <p>Welcome to StudySync. We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains what information we collect, how we use it, and what rights you have in relation to it.</p>
+        <p>StudySync is a personal academic productivity platform designed for Senior High School (SHS) students. Because our platform is intended for students — including minors — we take privacy especially seriously and have designed our data practices with that in mind.</p>
+        <div class="highlight-box">
+          <p><i class="fa-solid fa-circle-info"></i> <strong>Short version:</strong> We collect only what we need to make StudySync work for you. We do not sell your data. We do not show you ads. Your information stays private.</p>
+        </div>
+      </div>
+
+      <!-- Data Collected -->
+      <div class="doc-section" id="data-collected">
+        <div class="doc-section-icon"><i class="fa-solid fa-database" aria-hidden="true"></i></div>
+        <h2>Data We Collect</h2>
+        <p>We collect information in the following categories:</p>
+        <ul>
+          <li><strong>Account information</strong> — your name, email address, and password (stored securely as a hash) when you register.</li>
+          <li><strong>Profile information</strong> — optional details such as your SHS level, academic track, and profile photo.</li>
+          <li><strong>Academic content</strong> — tasks, notes, reminders, quiz attempts, and calendar events you create within the app.</li>
+          <li><strong>Usage data</strong> — quiz scores, study streaks, Pomodoro session durations, and focus statistics used to generate your progress analytics.</li>
+          <li><strong>Device &amp; session data</strong> — browser type, operating system, and session tokens used to keep you securely logged in.</li>
+        </ul>
+        <p>We do <strong>not</strong> collect payment information, location data, contact lists, or any data unrelated to your academic activity on StudySync.</p>
+      </div>
+
+      <!-- How We Use It -->
+      <div class="doc-section" id="how-we-use">
+        <div class="doc-section-icon"><i class="fa-solid fa-gears" aria-hidden="true"></i></div>
+        <h2>How We Use It</h2>
+        <p>The information we collect is used solely to provide and improve StudySync. Specifically, we use your data to:</p>
+        <ul>
+          <li>Create and maintain your account and keep you securely logged in.</li>
+          <li>Display your tasks, notes, reminders, calendar events, and quiz history.</li>
+          <li>Generate your personal progress analytics, streaks, and achievement badges.</li>
+          <li>Send you reminder and motivational emails, if you have enabled them in your settings.</li>
+          <li>Send a password reset link when you request one.</li>
+          <li>Improve the app based on aggregated, anonymised usage patterns.</li>
+        </ul>
+        <div class="accent-box">
+          <p><i class="fa-solid fa-check"></i> We do <strong>not</strong> use your data for advertising, profiling, or any commercial purpose beyond operating StudySync for you.</p>
+        </div>
+      </div>
+
+      <!-- Data Storage -->
+      <div class="doc-section" id="data-storage">
+        <div class="doc-section-icon"><i class="fa-solid fa-server" aria-hidden="true"></i></div>
+        <h2>Data Storage &amp; Security</h2>
+        <p>Your data is stored in a secured PostgreSQL database. Access is restricted and protected by authentication tokens (JWT) and encrypted passwords (bcrypt).</p>
+        <p>We take the following measures to protect your information:</p>
+        <ul>
+          <li>Passwords are never stored in plain text — they are hashed using bcrypt before storage.</li>
+          <li>All API communication uses HTTPS to prevent interception.</li>
+          <li>Session tokens expire and are invalidated on logout.</li>
+          <li>Database access is restricted to authorised application servers only.</li>
+        </ul>
+        <p>While we work hard to protect your data, no system is 100% secure. If you believe your account has been compromised, please change your password immediately and contact us.</p>
+      </div>
+
+      <!-- Sharing -->
+      <div class="doc-section" id="sharing">
+        <div class="doc-section-icon"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i></div>
+        <h2>Data Sharing</h2>
+        <p>We do <strong>not</strong> sell, trade, or rent your personal information to any third party.</p>
+        <p>We may share data only in the following limited circumstances:</p>
+        <ul>
+          <li><strong>Email delivery</strong> — We use a transactional email provider (such as Nodemailer / SMTP) solely to send you account-related emails (password resets, reminders). They do not have access to your other data.</li>
+          <li><strong>Legal requirements</strong> — We may disclose your information if required to do so by law or in response to valid legal requests.</li>
+        </ul>
+      </div>
+
+      <!-- Your Rights -->
+      <div class="doc-section" id="your-rights">
+        <div class="doc-section-icon"><i class="fa-solid fa-user-shield" aria-hidden="true"></i></div>
+        <h2>Your Rights</h2>
+        <p>You have full control over your data within StudySync:</p>
+        <ul>
+          <li><strong>Access</strong> — You can view all your data within the app at any time.</li>
+          <li><strong>Correction</strong> — You can update your profile, email, and password in Settings.</li>
+          <li><strong>Deletion</strong> — You can delete individual items (tasks, notes, reminders) or your entire account from Settings &rarr; Danger Zone.</li>
+          <li><strong>Export</strong> — Contact us to request a copy of your data.</li>
+          <li><strong>Opt-out of emails</strong> — You can disable all email notifications in Settings &rarr; Notifications at any time.</li>
+        </ul>
+      </div>
+
+      <!-- Cookies -->
+      <div class="doc-section" id="cookies">
+        <div class="doc-section-icon"><i class="fa-solid fa-cookie-bite" aria-hidden="true"></i></div>
+        <h2>Cookies &amp; Local Storage</h2>
+        <p>StudySync uses browser <strong>localStorage</strong> and <strong>sessionStorage</strong> to store your authentication token and user preferences locally on your device. This is necessary for the app to keep you logged in between visits.</p>
+        <p>We do <strong>not</strong> use advertising cookies, tracking cookies, or third-party analytics cookies. No data stored in your browser is shared with any external party.</p>
+        <p>You can clear your browser storage at any time, which will log you out of the app.</p>
+      </div>
+
+      <!-- Children -->
+      <div class="doc-section" id="children">
+        <div class="doc-section-icon"><i class="fa-solid fa-child-reaching" aria-hidden="true"></i></div>
+        <h2>Children's Privacy</h2>
+        <p>StudySync is designed for SHS students, many of whom may be under 18. We are committed to protecting the privacy of younger users. We do not knowingly collect more personal information from minors than is necessary to operate the service.</p>
+        <p>We do not share student data with advertisers or data brokers. We do not display advertisements to any users. If you are a parent or guardian and have concerns about your child's use of StudySync, please contact us.</p>
+      </div>
+
+      <!-- Changes -->
+      <div class="doc-section" id="changes">
+        <div class="doc-section-icon"><i class="fa-solid fa-rotate" aria-hidden="true"></i></div>
+        <h2>Policy Changes</h2>
+        <p>We may update this Privacy Policy from time to time. When we do, we will update the "Last updated" date at the top of this page. If changes are significant, we will notify you via email (if you have notifications enabled) or via a notice within the app.</p>
+        <p>Continuing to use StudySync after changes are posted constitutes your acceptance of the updated policy.</p>
+      </div>
+
+      <!-- Contact -->
+      <div class="doc-section" id="contact">
+        <div class="doc-section-icon"><i class="fa-solid fa-envelope" aria-hidden="true"></i></div>
+        <h2>Contact Us</h2>
+        <p>If you have any questions, concerns, or requests regarding this Privacy Policy or your personal data, please contact us:</p>
+        <div class="contact-card">
+          <div class="contact-icon"><i class="fa-solid fa-envelope" aria-hidden="true"></i></div>
+          <div class="contact-info">
+            <strong>Privacy Enquiries</strong>
+            privacy@studysync.app
+          </div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-icon"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></div>
+          <div class="contact-info">
+            <strong>StudySync</strong>
+            Academic productivity platform for SHS students
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="doc-footer">
+        <p>© 2026 StudySync. All rights reserved.</p>
+        <div class="footer-links">
+          <a href="index.html">Home</a>
+          <a href="terms.html">Terms of Use</a>
+          <a href="login.html">Sign In</a>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="../js/policy.js"></script>
+</body>
+</html>

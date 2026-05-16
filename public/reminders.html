@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudySync — Reminders</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" type="image/png" href="/images/favicon.ico">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #5B5BD6; --primary-soft: #7C7CF0; --primary-pale: #EEEEFF;
+      --accent: #22C9A5; --accent-pale: #E0FAF4;
+      --text-dark: #1A1A2E; --text-mid: #4A4A72; --text-light: #8888AA;
+      --bg: #F7F7FF; --bg-card: #FFFFFF;
+      --border: rgba(91,91,214,0.12); --border-input: rgba(91,91,214,0.18);
+      --shadow-sm: 0 2px 12px rgba(91,91,214,0.08);
+      --shadow-md: 0 8px 32px rgba(91,91,214,0.12);
+      --shadow-lg: 0 24px 64px rgba(91,91,214,0.16);
+      --sidebar-w: 240px;
+      --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px; --radius-xl: 32px;
+      --error: #E05475; --success: #22C9A5; --warn: #F59E0B;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-dark); min-height: 100vh; display: flex; overflow-x: hidden; }
+
+    .bg-blob { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; opacity: 0.35; }
+    .bg-blob--1 { width: 500px; height: 500px; background: radial-gradient(circle, #c5c5fa 0%, transparent 70%); top: -160px; left: -120px; }
+    .bg-blob--2 { width: 360px; height: 360px; background: radial-gradient(circle, #a0f5e0 0%, transparent 70%); bottom: 40px; right: -80px; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--bg-card); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s ease; }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 24px 20px 20px; text-decoration: none; border-bottom: 1px solid var(--border); }
+    .sidebar-logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); border-radius: 9px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(91,91,214,0.3); }
+    .sidebar-logo-icon i { color: #fff; font-size: 15px; }
+    .sidebar-logo-text { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--text-dark); }
+    .sidebar-logo-text span { color: var(--primary); }
+    .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); padding: 10px 10px 6px; margin-top: 6px; }
+    .nav-item { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: var(--radius-sm); text-decoration: none; font-size: 14px; color: var(--text-mid); transition: all 0.2s; position: relative; }
+    .nav-item i { width: 18px; text-align: center; font-size: 15px; color: var(--text-light); transition: color 0.2s; }
+    .nav-item:hover, .nav-item.active { background: var(--primary-pale); color: var(--primary); }
+    .nav-item:hover i, .nav-item.active i { color: var(--primary); }
+    .nav-item.active { font-weight: 500; }
+    .nav-item.active::before { content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 3px; background: var(--primary); border-radius: 0 3px 3px 0; }
+    .sidebar-footer { padding: 16px 12px; border-top: 1px solid var(--border); }
+    .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: background 0.2s; }
+    .sidebar-user:hover { background: var(--primary-pale); }
+    .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #fff; flex-shrink: 0; overflow: hidden; }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 13px; font-weight: 500; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 11px; color: var(--text-light); }
+    .logout-btn { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 14px; padding: 4px; transition: color 0.2s; }
+    .logout-btn:hover { color: var(--error); }
+
+    /* ── MAIN ── */
+    .main-content { margin-left: var(--sidebar-w); flex: 1; position: relative; z-index: 1; min-height: 100vh; }
+    .topbar { position: sticky; top: 0; background: rgba(247,247,255,0.88); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: 0 32px; height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; z-index: 40; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .menu-toggle { display: none; background: none; border: none; color: var(--text-dark); font-size: 18px; cursor: pointer; padding: 6px; }
+    .topbar-title { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--text-dark); letter-spacing: -0.3px; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .icon-btn { width: 38px; height: 38px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-mid); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; transition: all 0.2s; text-decoration: none; }
+    .icon-btn:hover { background: var(--primary-pale); color: var(--primary); }
+    .page-body { padding: 32px; max-width: 1000px; }
+
+    /* ── PAGE HEADER ── */
+    .page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
+    .page-title { font-family: 'Instrument Serif', serif; font-size: clamp(26px,3vw,36px); color: var(--text-dark); letter-spacing: -0.5px; margin-bottom: 4px; }
+    .page-sub { font-size: 14px; color: var(--text-light); }
+
+    /* ── TYPE FILTER PILLS ── */
+    .type-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+    .type-pill { display: flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 99px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-mid); font-family: 'DM Sans', sans-serif; transition: all 0.2s; box-shadow: var(--shadow-sm); }
+    .type-pill i { font-size: 13px; }
+    .type-pill:hover { background: var(--primary-pale); color: var(--primary); border-color: rgba(91,91,214,0.2); }
+    .type-pill.active { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 4px 14px rgba(91,91,214,0.28); }
+
+    /* ── TWO-COLUMN LAYOUT ── */
+    .reminders-layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
+
+    /* ── REMINDER LIST ── */
+    .reminder-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .reminder-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px 20px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 16px; transition: all 0.22s ease; }
+    .reminder-card:hover { border-color: rgba(91,91,214,0.2); box-shadow: var(--shadow-md); }
+    .reminder-card.inactive { opacity: 0.55; }
+
+    .reminder-type-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
+
+    .reminder-info { flex: 1; min-width: 0; }
+    .reminder-title { font-size: 14px; font-weight: 500; color: var(--text-dark); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .reminder-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .reminder-meta-item { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-light); }
+    .reminder-meta-item i { font-size: 11px; }
+
+    .reminder-type-badge { font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 99px; text-transform: capitalize; flex-shrink: 0; }
+    .type-prayer { background: #F0FDF4; color: #16A34A; }
+    .type-study  { background: var(--primary-pale); color: var(--primary); }
+    .type-school { background: #FFF5E0; color: #D97706; }
+    .type-custom { background: var(--accent-pale); color: #0E9A7D; }
+
+    /* Toggle switch */
+    .toggle-wrap { flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+    .toggle { position: relative; width: 40px; height: 22px; }
+    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider { position: absolute; inset: 0; background: #D1D5E8; border-radius: 99px; cursor: pointer; transition: background 0.25s; }
+    .toggle-slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.25s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+    .toggle input:checked + .toggle-slider { background: var(--accent); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+    .reminder-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .reminder-action-btn { width: 30px; height: 30px; border-radius: 8px; border: none; background: none; color: var(--text-light); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.2s; }
+    .reminder-action-btn:hover { background: var(--primary-pale); color: var(--primary); }
+    .reminder-action-btn.delete:hover { background: #FFF0F3; color: var(--error); }
+
+    /* ── RIGHT PANEL ── */
+    .right-panel { display: flex; flex-direction: column; gap: 16px; }
+
+    /* Today's schedule */
+    .schedule-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .schedule-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .schedule-title { font-size: 14px; font-weight: 500; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
+    .schedule-title i { color: var(--primary); font-size: 14px; }
+    .schedule-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+
+    .schedule-item { display: flex; align-items: center; gap: 12px; }
+    .schedule-time { font-size: 12px; font-weight: 600; color: var(--text-mid); width: 44px; flex-shrink: 0; }
+    .schedule-line { width: 2px; height: 32px; border-radius: 99px; flex-shrink: 0; }
+    .schedule-label { font-size: 13px; color: var(--text-dark); }
+
+    /* Quick add types */
+    .quick-types { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px 20px; box-shadow: var(--shadow-sm); }
+    .quick-types-title { font-size: 13px; font-weight: 500; color: var(--text-dark); margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+    .quick-types-title i { color: var(--primary); }
+    .quick-type-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .quick-type-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; color: var(--text-mid); transition: all 0.2s; }
+    .quick-type-btn i { font-size: 18px; }
+    .quick-type-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+    .quick-type-btn.prayer:hover { background: #F0FDF4; color: #16A34A; border-color: rgba(22,163,74,0.2); }
+    .quick-type-btn.study:hover  { background: var(--primary-pale); color: var(--primary); border-color: rgba(91,91,214,0.2); }
+    .quick-type-btn.school:hover { background: #FFF5E0; color: #D97706; border-color: rgba(217,119,6,0.2); }
+    .quick-type-btn.custom:hover { background: var(--accent-pale); color: #0E9A7D; border-color: rgba(34,201,165,0.2); }
+
+    /* ── FAB ── */
+    .fab { position: fixed; bottom: 32px; right: 32px; width: 54px; height: 54px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 6px 24px rgba(91,91,214,0.38); transition: all 0.25s; z-index: 60; }
+    .fab:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 10px 32px rgba(91,91,214,0.48); }
+
+    /* ── MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(26,26,46,0.35); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 36px 32px; max-width: 480px; width: 100%; box-shadow: var(--shadow-lg); animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes modalIn { from { opacity:0; transform:scale(0.92) translateY(16px); } to { opacity:1; transform:scale(1) translateY(0); } }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .modal-title { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--text-dark); letter-spacing: -0.3px; }
+    .modal-close { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 18px; padding: 4px; transition: color 0.2s; border-radius: 6px; }
+    .modal-close:hover { color: var(--text-dark); background: var(--primary-pale); }
+
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-mid); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.4px; }
+    .form-input, .form-select, .form-textarea { width: 100%; padding: 11px 14px; border: 1px solid var(--border-input); border-radius: var(--radius-sm); background: var(--bg); font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-dark); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(91,91,214,0.1); }
+    .form-input::placeholder { color: var(--text-light); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-error { font-size: 11px; color: var(--error); margin-top: 5px; display: flex; align-items: center; gap: 4px; min-height: 15px; }
+
+    /* Repeat options */
+    .repeat-options { display: flex; gap: 6px; flex-wrap: wrap; }
+    .repeat-btn { padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border-input); background: var(--bg); color: var(--text-mid); font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+    .repeat-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .modal-footer { display: flex; gap: 10px; margin-top: 24px; }
+    .btn-cancel { flex: 1; padding: 12px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-mid); transition: all 0.2s; }
+    .btn-cancel:hover { background: var(--primary-pale); color: var(--primary); border-color: transparent; }
+    .btn-save { flex: 2; padding: 12px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; border: none; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); color: #fff; box-shadow: 0 4px 14px rgba(91,91,214,0.28); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-save:hover { transform: translateY(-1px); }
+    .btn-save:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-save .spinner { display: none; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; }
+    .btn-save.loading .btn-label { display: none; }
+    .btn-save.loading .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Delete modal */
+    .delete-modal p { font-size: 14px; color: var(--text-mid); line-height: 1.6; margin-bottom: 24px; }
+    .btn-delete { flex: 2; padding: 12px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; border: none; background: var(--error); color: #fff; transition: all 0.2s; }
+    .btn-delete:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    /* Skeleton / empty */
+    .skeleton { background: linear-gradient(90deg, var(--primary-pale) 25%, #e8e8ff 50%, var(--primary-pale) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; }
+    @keyframes shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
+    .empty-state { text-align: center; padding: 48px 24px; color: var(--text-light); }
+    .empty-state i { font-size: 32px; margin-bottom: 12px; display: block; opacity: 0.3; }
+    .empty-state p { font-size: 14px; margin-bottom: 20px; }
+    .btn-empty { padding: 11px 24px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); color: #fff; border: none; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 14px rgba(91,91,214,0.28); transition: all 0.2s; }
+    .btn-empty:hover { transform: translateY(-1px); }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(26,26,46,0.3); z-index: 49; backdrop-filter: blur(2px); }
+    .sidebar-overlay.show { display: block; }
+
+    .toast { position: fixed; bottom: 100px; right: 32px; background: var(--text-dark); color: #fff; padding: 12px 20px; border-radius: var(--radius-sm); font-size: 13px; z-index: 300; display: none; animation: toastIn 0.3s ease; box-shadow: var(--shadow-md); }
+    .toast.show { display: flex; align-items: center; gap: 8px; }
+    .toast.success { background: #0E9A7D; }
+    .toast.error   { background: var(--error); }
+    @keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+    @media (max-width: 900px) { .reminders-layout { grid-template-columns: 1fr; } .right-panel { order: -1; } }
+    @media (max-width: 800px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } .menu-toggle { display: block; } .topbar { padding: 0 20px; } .page-body { padding: 20px; } .fab { bottom: 20px; right: 20px; } }
+    @media (max-width: 520px) { .form-row { grid-template-columns: 1fr; } .modal { padding: 28px 20px; } .quick-type-btns { grid-template-columns: repeat(4,1fr); } }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+<body>
+  <div class="bg-blob bg-blob--1" aria-hidden="true"></div>
+  <div class="bg-blob bg-blob--2" aria-hidden="true"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <a href="dashboard.html" class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+      <span class="sidebar-logo-text">Study<span>Sync</span></span>
+    </a>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="quizzes.html"   class="nav-item"><i class="fa-solid fa-brain"></i> Quizzes</a>
+      <a href="notes.html"     class="nav-item"><i class="fa-solid fa-book-open"></i> Notes</a>
+      <a href="tasks.html"     class="nav-item"><i class="fa-solid fa-list-check"></i> Tasks</a>
+      <span class="nav-section-label">Track</span>
+      <a href="progress.html"  class="nav-item"><i class="fa-solid fa-chart-line"></i> Progress</a>
+      <a href="calendar.html"  class="nav-item"><i class="fa-solid fa-calendar-days"></i> Calendar</a>
+      <a href="reminders.html" class="nav-item active" aria-current="page"><i class="fa-solid fa-bell"></i> Reminders</a>
+      <span class="nav-section-label">Focus</span>
+      <a href="pomodoro.html"  class="nav-item"><i class="fa-solid fa-clock"></i> Pomodoro</a>
+      <span class="nav-section-label">Account</span>
+      <a href="settings.html"  class="nav-item"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="sidebarAvatar"></div>
+        <div class="user-info">
+          <div class="user-name" id="sidebarUserName">Loading…</div>
+          <div class="user-role">Student</div>
+        </div>
+        <button class="logout-btn" id="logoutBtn" aria-label="Log out" title="Log out">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar"><i class="fa-solid fa-bars"></i></button>
+        <h1 class="topbar-title">Reminders</h1>
+      </div>
+      <div class="topbar-right">
+        <a href="dashboard.html" class="icon-btn" aria-label="Dashboard"><i class="fa-solid fa-house"></i></a>
+        <a href="settings.html"  class="icon-btn" aria-label="Settings"><i class="fa-solid fa-gear"></i></a>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">My Reminders</h2>
+          <p class="page-sub" id="reminderSubtitle">Loading your reminders…</p>
+        </div>
+      </div>
+
+      <!-- Type filter pills -->
+      <div class="type-pills" role="tablist" aria-label="Filter reminders by type">
+        <button class="type-pill active" data-type="all"    role="tab" aria-selected="true"><i class="fa-solid fa-layer-group"></i> All</button>
+        <button class="type-pill" data-type="prayer"  role="tab"><i class="fa-solid fa-hands-praying"></i> Prayer</button>
+        <button class="type-pill" data-type="study"   role="tab"><i class="fa-solid fa-book-open"></i> Study</button>
+        <button class="type-pill" data-type="school"  role="tab"><i class="fa-solid fa-school"></i> School</button>
+        <button class="type-pill" data-type="custom"  role="tab"><i class="fa-solid fa-star"></i> Custom</button>
+      </div>
+
+      <!-- Two column layout -->
+      <div class="reminders-layout">
+
+        <!-- Left: reminder list -->
+        <div>
+          <div class="reminder-list" id="reminderList" aria-live="polite" aria-label="Reminders"></div>
+        </div>
+
+        <!-- Right: schedule + quick add -->
+        <div class="right-panel">
+
+          <!-- Today's schedule -->
+          <div class="schedule-card">
+            <div class="schedule-header">
+              <span class="schedule-title"><i class="fa-solid fa-calendar-day"></i> Today's Schedule</span>
+            </div>
+            <div class="schedule-body" id="todaySchedule" aria-live="polite">
+              <div class="skeleton" style="height:13px;width:80%;"></div>
+              <div class="skeleton" style="height:13px;width:65%;margin-top:10px;"></div>
+              <div class="skeleton" style="height:13px;width:72%;margin-top:10px;"></div>
+            </div>
+          </div>
+
+          <!-- Quick add by type -->
+          <div class="quick-types">
+            <div class="quick-types-title"><i class="fa-solid fa-bolt"></i> Quick Add</div>
+            <div class="quick-type-btns">
+              <button class="quick-type-btn prayer" data-preset="prayer" aria-label="Add prayer reminder">
+                <i class="fa-solid fa-hands-praying" style="color:#16A34A;"></i> Prayer
+              </button>
+              <button class="quick-type-btn study" data-preset="study" aria-label="Add study reminder">
+                <i class="fa-solid fa-book-open" style="color:var(--primary);"></i> Study
+              </button>
+              <button class="quick-type-btn school" data-preset="school" aria-label="Add school reminder">
+                <i class="fa-solid fa-school" style="color:#D97706;"></i> School
+              </button>
+              <button class="quick-type-btn custom" data-preset="custom" aria-label="Add custom reminder">
+                <i class="fa-solid fa-star" style="color:var(--accent);"></i> Custom
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" id="fabAdd" aria-label="Add reminder" title="Add reminder">
+    <i class="fa-solid fa-plus"></i>
+  </button>
+
+  <!-- ADD / EDIT MODAL -->
+  <div class="modal-overlay" id="reminderModal" role="dialog" aria-modal="true" aria-labelledby="reminderModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="reminderModalTitle">New Reminder</h2>
+        <button class="modal-close" id="modalClose" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="reminderForm" novalidate>
+        <input type="hidden" id="reminderId" />
+
+        <div class="form-group">
+          <label class="form-label" for="reminderTitle">Title <span aria-hidden="true">*</span></label>
+          <input type="text" class="form-input" id="reminderTitle" placeholder="e.g. Fajr Prayer" required />
+          <div class="form-error" id="titleError"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="reminderType">Type</label>
+            <select class="form-select" id="reminderType">
+              <option value="prayer">Prayer</option>
+              <option value="study">Study</option>
+              <option value="school">School</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reminderTime">Time <span aria-hidden="true">*</span></label>
+            <input type="time" class="form-input" id="reminderTime" required />
+            <div class="form-error" id="timeError"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Repeat</label>
+          <div class="repeat-options" id="repeatOptions" role="group" aria-label="Repeat frequency">
+            <button type="button" class="repeat-btn active" data-repeat="daily">Daily</button>
+            <button type="button" class="repeat-btn" data-repeat="weekdays">Weekdays</button>
+            <button type="button" class="repeat-btn" data-repeat="weekends">Weekends</button>
+            <button type="button" class="repeat-btn" data-repeat="once">Once</button>
+          </div>
+        </div>
+
+        <div class="form-group" id="dateGroup" style="display:none;">
+          <label class="form-label" for="reminderDate">Date</label>
+          <input type="date" class="form-input" id="reminderDate" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reminderNote">Note (optional)</label>
+          <input type="text" class="form-input" id="reminderNote" placeholder="Optional note…" />
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" id="btnCancel">Cancel</button>
+          <button type="submit" class="btn-save" id="btnSave">
+            <span class="btn-label">Save Reminder</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DELETE MODAL -->
+  <div class="modal-overlay" id="deleteModal" role="dialog" aria-modal="true" aria-labelledby="deleteTitle">
+    <div class="modal delete-modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="deleteTitle" style="color:var(--error);"><i class="fa-solid fa-trash" style="font-size:18px;"></i> Delete Reminder</h2>
+        <button class="modal-close" id="deleteModalClose" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p id="deleteModalText">Are you sure you want to delete this reminder?</p>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" id="deleteCancelBtn">Cancel</button>
+        <button type="button" class="btn-delete" id="deleteConfirmBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/reminders.js"></script>
+</body>
+</html>
