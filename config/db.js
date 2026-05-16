@@ -36,9 +36,7 @@ const connectDB = async () => {
   try {
     await pool.query('SELECT NOW()');
 
-console.log(`✅ PostgreSQL connected — ${new Date().toString()}`);
-
-    client.release();
+    console.log(`✅ PostgreSQL connected — ${new Date().toString()}`);
   } catch (err) {
     console.error('❌ Database connection failed:', err.message);
     process.exit(1);
