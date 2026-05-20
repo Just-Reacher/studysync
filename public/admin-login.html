@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudySync Admin — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #5B5BD6; --primary-soft: #7C7CF0; --primary-pale: #EEEEFF;
+      --accent: #22C9A5; --accent-pale: #E0FAF4;
+      --text-dark: #1A1A2E; --text-mid: #4A4A72; --text-light: #8888AA;
+      --bg: #F7F7FF; --bg-card: #FFFFFF;
+      --border: rgba(91,91,214,0.12); --border-input: rgba(91,91,214,0.18);
+      --shadow-sm: 0 2px 12px rgba(91,91,214,0.08); --shadow-md: 0 8px 32px rgba(91,91,214,0.12);
+      --shadow-lg: 0 24px 64px rgba(91,91,214,0.16);
+      --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px; --radius-xl: 32px;
+      --error: #E05475; --success: #22C9A5;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-dark); min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .bg-blob { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; opacity: 0.4; }
+    .bg-blob--1 { width: 500px; height: 500px; background: radial-gradient(circle, #c5c5fa 0%, transparent 70%); top: -160px; left: -120px; }
+    .bg-blob--2 { width: 360px; height: 360px; background: radial-gradient(circle, #a0f5e0 0%, transparent 70%); bottom: 40px; right: -80px; }
+
+    .login-wrap { position: relative; z-index: 1; width: 100%; max-width: 420px; padding: 20px; }
+
+    .admin-badge { display: inline-flex; align-items: center; gap: 7px; background: var(--primary-pale); color: var(--primary); border: 1px solid rgba(91,91,214,0.2); border-radius: 99px; padding: 6px 14px; font-size: 12px; font-weight: 500; margin-bottom: 20px; }
+
+    .login-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 40px 36px; box-shadow: var(--shadow-lg); }
+
+    .login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+    .login-logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(91,91,214,0.3); }
+    .login-logo-icon i { color: #fff; font-size: 17px; }
+    .login-logo-text { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--text-dark); }
+    .login-logo-text span { color: var(--primary); }
+
+    .login-title { font-family: 'Instrument Serif', serif; font-size: 26px; color: var(--text-dark); margin-bottom: 6px; }
+    .login-sub { font-size: 13px; color: var(--text-light); margin-bottom: 28px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 11.5px; font-weight: 500; color: var(--text-mid); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.4px; }
+    .input-wrap { position: relative; }
+    .input-wrap i.input-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--text-light); pointer-events: none; }
+    .form-input { width: 100%; padding: 11px 12px 11px 38px; border: 1px solid var(--border-input); border-radius: var(--radius-sm); background: var(--bg); font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-dark); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(91,91,214,0.1); }
+    .form-input::placeholder { color: var(--text-light); }
+    .toggle-pw { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 14px; padding: 4px; transition: color 0.2s; }
+    .toggle-pw:hover { color: var(--primary); }
+
+    .alert { display: none; align-items: center; gap: 8px; padding: 11px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 16px; }
+    .alert.show { display: flex; }
+    .alert-error { background: rgba(224,84,117,0.07); border: 1px solid rgba(224,84,117,0.22); color: var(--error); }
+
+    .btn-login { width: 100%; padding: 13px; background: linear-gradient(135deg, var(--primary), var(--primary-soft)); color: #fff; border: none; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 14px rgba(91,91,214,0.3); margin-top: 8px; }
+    .btn-login:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(91,91,214,0.4); }
+    .btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-login .spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; }
+    .btn-login.loading .btn-label { display: none; }
+    .btn-login.loading .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .back-link { display: block; text-align: center; margin-top: 18px; font-size: 13px; color: var(--text-light); text-decoration: none; transition: color 0.2s; }
+    .back-link:hover { color: var(--primary); }
+  </style>
+</head>
+<body>
+  <div class="bg-blob bg-blob--1" aria-hidden="true"></div>
+  <div class="bg-blob bg-blob--2" aria-hidden="true"></div>
+
+  <div class="login-wrap">
+    <div class="admin-badge"><i class="fa-solid fa-shield-halved"></i> Admin Portal</div>
+
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="login-logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <span class="login-logo-text">Study<span>Sync</span></span>
+      </div>
+
+      <h1 class="login-title">Admin Sign In</h1>
+      <p class="login-sub">Restricted access. Authorised personnel only.</p>
+
+      <div class="alert alert-error" id="loginAlert" role="alert">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span id="loginAlertMsg"></span>
+      </div>
+
+      <form id="adminLoginForm" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="adminEmail">Email Address</label>
+          <div class="input-wrap">
+            <i class="fa-regular fa-envelope input-icon"></i>
+            <input type="email" class="form-input" id="adminEmail" placeholder="admin@studysync.app" required autocomplete="email" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="adminPassword">Password</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input type="password" class="form-input" id="adminPassword" placeholder="Your password" required autocomplete="current-password" />
+            <button type="button" class="toggle-pw" id="togglePw" aria-label="Toggle password">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn-login" id="loginBtn">
+          <span class="btn-label">Sign In <i class="fa-solid fa-arrow-right" style="font-size:12px;"></i></span>
+          <span class="spinner"></span>
+        </button>
+      </form>
+    </div>
+    <a href="../public/index.html" class="back-link"><i class="fa-solid fa-arrow-left" style="font-size:11px;"></i> Back to StudySync</a>
+  </div>
+
+  <script src="js/admin-login.js"></script>
+</body>
+</html>

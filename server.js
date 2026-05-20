@@ -10,14 +10,14 @@ const cors       = require('cors');
 const helmet     = require('helmet');
 const morgan     = require('morgan');
 const path       = require('path');
-const fs = require('fs');
 
 const { connectDB }        = require('./config/db');
 const { errorMiddleware }  = require('./middleware/errorMiddleware');
-const { rateLimitMiddleware, authRateLimit } =require('./middleware/rateLimitMiddleware');
+const { rateLimitMiddleware } = require('./middleware/rateLimitMiddleware');
 
 /* ── Routes ── */
 const authRoutes        = require('./routes/authRoutes');
+const adminRoutes       = require('./routes/adminRoutes');
 const dashboardRoutes   = require('./routes/dashboardRoutes');
 const quizRoutes        = require('./routes/quizRoutes');
 const taskRoutes        = require('./routes/taskRoutes');
@@ -30,7 +30,6 @@ const settingsRoutes    = require('./routes/settingsRoutes');
 const emailRoutes       = require('./routes/emailRoutes');
 
 const app  = express();
-app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 
 /* ══════════════════════════════
@@ -45,8 +44,10 @@ app.use(helmet({
 
 /* CORS */
 app.use(cors({
-  origin: true,
+  origin: process.env.CLIENT_URL || 'http://localhost:5000',
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 /* Body parsing */
@@ -60,21 +61,18 @@ if (process.env.NODE_ENV !== 'test') {
 
 /* Rate limiting */
 app.use('/api', rateLimitMiddleware);
-app.use('/api/auth/login', authRateLimit);
 
 /* ══════════════════════════════
    STATIC FILES
 ══════════════════════════════ */
 app.use(express.static(path.join(__dirname, 'public')));
-if (!fs.existsSync(path.join(__dirname, 'uploads'))) {
-  fs.mkdirSync(path.join(__dirname, 'uploads'));
-}
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 /* ══════════════════════════════
    API ROUTES
 ══════════════════════════════ */
 app.use('/api/auth',      authRoutes);
+app.use('/api/admin',     adminRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/quizzes',   quizRoutes);
 app.use('/api/tasks',     taskRoutes);
@@ -89,9 +87,20 @@ app.use('/api/email',     emailRoutes);
 /* ══════════════════════════════
    HTML ROUTES (SPA fallback)
 ══════════════════════════════ */
-const htmlDir = path.join(__dirname, 'public');
+const htmlDir = path.join(__dirname, 'public', 'html');
 
-app.get('/',            (req, res) => res.sendFile(path.join(htmlDir, 'index.html')));
+app.get('/admin',               (req, res) => res.sendFile(path.join(htmlDir, 'admin-login.html')));
+app.get('/admin/login',         (req, res) => res.sendFile(path.join(htmlDir, 'admin-login.html')));
+app.get('/admin/dashboard',     (req, res) => res.sendFile(path.join(htmlDir, 'admin-dashboard.html')));
+app.get('/admin/users',         (req, res) => res.sendFile(path.join(htmlDir, 'admin-users.html')));
+app.get('/admin/users/:id',     (req, res) => res.sendFile(path.join(htmlDir, 'admin-user-detail.html')));
+app.get('/admin/quizzes',       (req, res) => res.sendFile(path.join(htmlDir, 'admin-quizzes.html')));
+app.get('/admin/questions',     (req, res) => res.sendFile(path.join(htmlDir, 'admin-questions.html')));
+app.get('/admin/notes',         (req, res) => res.sendFile(path.join(htmlDir, 'admin-notes.html')));
+app.get('/admin/analytics',     (req, res) => res.sendFile(path.join(htmlDir, 'admin-analytics.html')));
+app.get('/admin/logs',          (req, res) => res.sendFile(path.join(htmlDir, 'admin-logs.html')));
+app.get('/admin/emails',        (req, res) => res.sendFile(path.join(htmlDir, 'admin-emails.html')));
+app.get('/admin/settings',      (req, res) => res.sendFile(path.join(htmlDir, 'admin-settings.html')));
 app.get('/login',       (req, res) => res.sendFile(path.join(htmlDir, 'login.html')));
 app.get('/dashboard',   (req, res) => res.sendFile(path.join(htmlDir, 'dashboard.html')));
 app.get('/quizzes',     (req, res) => res.sendFile(path.join(htmlDir, 'quizzes.html')));

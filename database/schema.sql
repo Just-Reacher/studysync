@@ -311,3 +311,96 @@ SELECT
 
 FROM quizzes q
 WHERE q.is_active = TRUE;
+
+-- ─────────────────────────────────────────────
+-- StudySync — database/schema_logs.sql
+-- Add log tables to existing schema
+-- Run: psql $DATABASE_URL -f database/schema_logs.sql
+-- ─────────────────────────────────────────────
+
+-- ══════════════════════════════
+--  ACTIVITY LOGS
+--  Tracks all user actions
+-- ══════════════════════════════
+CREATE TABLE IF NOT EXISTS activity_logs (
+  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id     UUID REFERENCES users(id) ON DELETE SET NULL,
+  user_email  VARCHAR(255),
+  user_name   VARCHAR(160),
+  type        VARCHAR(30) NOT NULL DEFAULT 'system',
+  -- auth | quiz | task | note | reminder | calendar | timer | settings | system
+  level       VARCHAR(10) NOT NULL DEFAULT 'info',
+  -- info | warning | error
+  action      VARCHAR(255) NOT NULL,
+  details     TEXT,
+  ip_address  VARCHAR(45),
+  user_agent  TEXT,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_activity_logs_user_id    ON activity_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_type       ON activity_logs(type);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_level      ON activity_logs(level);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_created_at ON activity_logs(created_at DESC);
+
+-- ══════════════════════════════
+--  EMAIL LOGS
+--  Tracks all emails sent
+-- ══════════════════════════════
+CREATE TABLE IF NOT EXISTS email_logs (
+  id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  type             VARCHAR(30) NOT NULL DEFAULT 'custom',
+  -- motivation | weekly | custom | password_reset | welcome
+  subject          VARCHAR(255) NOT NULL,
+  recipient_count  INT NOT NULL DEFAULT 1,
+  recipients       TEXT,       -- comma-separated emails or group name
+  sent_by          UUID REFERENCES users(id) ON DELETE SET NULL,
+  status           VARCHAR(10) NOT NULL DEFAULT 'sent',
+  -- sent | failed | partial
+  error_message    TEXT,
+  sent_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_email_logs_type    ON email_logs(type);
+CREATE INDEX IF NOT EXISTS idx_email_logs_sent_at ON email_logs(sent_at DESC);
+
+-- ══════════════════════════════
+--  ERROR LOGS
+--  Tracks API and system errors
+-- ══════════════════════════════
+CREATE TABLE IF NOT EXISTS error_logs (
+  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id     UUID REFERENCES users(id) ON DELETE SET NULL,
+  user_email  VARCHAR(255),
+  endpoint    VARCHAR(255),
+  method      VARCHAR(10),
+  status_code INT,
+  message     TEXT NOT NULL,
+  stack       TEXT,
+  ip_address  VARCHAR(45),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_error_logs_created_at ON error_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_error_logs_status_code ON error_logs(status_code);
+
+-- ══════════════════════════════
+--  ADMIN SETTINGS TABLE
+--  Stores system-wide config
+-- ══════════════════════════════
+CREATE TABLE IF NOT EXISTS admin_settings (
+  key        VARCHAR(100) PRIMARY KEY,
+  value      TEXT,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Default settings
+INSERT INTO admin_settings (key, value) VALUES
+  ('maintenance_mode', 'false'),
+  ('smtp_host',        ''),
+  ('smtp_port',        '587'),
+  ('smtp_user',        ''),
+  ('smtp_from',        'StudySync <ayisiemmanuel151@gmail.com>'),
+  ('motivation_email_time', '08:00'),
+  ('weekly_email_time', 'Monday 09:00')
+ON CONFLICT (key) DO NOTHING;
