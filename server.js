@@ -30,6 +30,7 @@ const settingsRoutes    = require('./routes/settingsRoutes');
 const emailRoutes       = require('./routes/emailRoutes');
 
 const app  = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 
 /* ══════════════════════════════
@@ -87,10 +88,8 @@ app.use('/api/email',     emailRoutes);
 /* ══════════════════════════════
    HTML ROUTES (SPA fallback)
 ══════════════════════════════ */
-const htmlDir = path.join(__dirname, 'public', 'html');
+const htmlDir = path.join(__dirname, 'public');
 
-app.get('/admin',               (req, res) => res.sendFile(path.join(htmlDir, 'admin-login.html')));
-app.get('/admin/login',         (req, res) => res.sendFile(path.join(htmlDir, 'admin-login.html')));
 app.get('/admin/dashboard',     (req, res) => res.sendFile(path.join(htmlDir, 'admin-dashboard.html')));
 app.get('/admin/users',         (req, res) => res.sendFile(path.join(htmlDir, 'admin-users.html')));
 app.get('/admin/users/:id',     (req, res) => res.sendFile(path.join(htmlDir, 'admin-user-detail.html')));
