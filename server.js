@@ -65,7 +65,21 @@ app.use('/api', rateLimitMiddleware);
 
 /* ══════════════════════════════
    STATIC FILES
+   FIX: Explicit routes for /js, /css, /images so Express
+   serves them with correct MIME types and never falls through
+   to the SPA HTML handler. Must come BEFORE API/HTML routes.
 ══════════════════════════════ */
+
+/* Explicit sub-directory static routes — prevents MIME type errors
+   where requests for .js/.css files were being caught by the SPA
+   fallback and returned as text/html. */
+app.use('/js',      express.static(path.join(__dirname, 'public', 'js'),      { fallthrough: false }));
+app.use('/css',     express.static(path.join(__dirname, 'public', 'css'),     { fallthrough: false }));
+app.use('/images',  express.static(path.join(__dirname, 'public', 'images'),  { fallthrough: false }));
+app.use('/fonts',   express.static(path.join(__dirname, 'public', 'fonts'),   { fallthrough: false }));
+app.use('/assets',  express.static(path.join(__dirname, 'public', 'assets'),  { fallthrough: false }));
+
+/* General public static files (favicon, manifests, root-level files, etc.) */
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -133,6 +147,17 @@ app.use((req, res) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ message: `Route ${req.method} ${req.path} not found.` });
   }
+
+  /* FIX: Never serve index.html for static asset extensions.
+     If a .js, .css, .map, .png, .jpg, .svg, etc. reaches this
+     handler it means the file genuinely doesn't exist — return
+     404 instead of silently returning HTML (which causes MIME
+     type errors in the browser). */
+  const staticExtensions = /\.(js|mjs|cjs|css|map|ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot|json)$/i;
+  if (staticExtensions.test(req.path)) {
+    return res.status(404).json({ message: `Static asset not found: ${req.path}` });
+  }
+
   res.sendFile(path.join(htmlDir, 'index.html'));
 });
 
