@@ -344,19 +344,23 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Store token
-      const storage = rememberMe.checked ? localStorage : sessionStorage;
-      storage.setItem('ss_token', data.token);
-      storage.setItem('ss_user',  JSON.stringify(data.user));
+const storage = rememberMe.checked ? localStorage : sessionStorage;
+storage.setItem('ss_token', data.token);
+storage.setItem('ss_user',  JSON.stringify(data.user));
 
-      // Remember email if checked
-      if (rememberMe.checked) {
-        localStorage.setItem('ss_remember_email', emailVal);
-      } else {
-        localStorage.removeItem('ss_remember_email');
-      }
+// Remember email if checked
+if (rememberMe.checked) {
+  localStorage.setItem('ss_remember_email', emailVal);
+} else {
+  localStorage.removeItem('ss_remember_email');
+}
 
-      // Redirect to dashboard
-      window.location.href = 'dashboard.html';
+// ── Role-based redirect ──
+if (data.user.role === 'admin') {
+  window.location.href = '/admin/dashboard';
+} else {
+  window.location.href = '/dashboard';
+}
 
     } catch (err) {
       showAlert(err.message || 'Something went wrong. Please try again.');
@@ -484,16 +488,21 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
-  /* ══════════════════════════════
-     REDIRECT IF ALREADY LOGGED IN
-  ══════════════════════════════ */
-
   const existingToken =
-    localStorage.getItem('ss_token') ||
-    sessionStorage.getItem('ss_token');
+  localStorage.getItem('ss_token') ||
+  sessionStorage.getItem('ss_token');
 
-  if (existingToken) {
-    window.location.href = 'dashboard.html';
+if (existingToken) {
+  const savedUser = JSON.parse(
+    localStorage.getItem('ss_user') ||
+    sessionStorage.getItem('ss_user') ||
+    '{}'
+  );
+  if (savedUser.role === 'admin') {
+    window.location.href = '/admin/dashboard';
+  } else {
+    window.location.href = '/dashboard';
   }
+}
 
 });

@@ -2,19 +2,33 @@
    StudySync — middleware/authMiddleware.js
 ───────────────────────────────────────────── */
 const jwt = require('jsonwebtoken');
+const { query } = require('../config/db');
 
-const protect = (req, res, next) => {
-  const auth = req.headers.authorization;
-  if (!auth || !auth.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Not authorised. No token.' });
+const protect = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Not authorised, no token.' });
   }
-  const token = auth.split(' ')[1];
+
   try {
+    const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+
+    // Attach fresh user from DB (so deactivated users are caught)
+    const result = await query(
+      'SELECT id, name, email, role, is_active FROM users WHERE id = $1',
+      [decoded.id]
+    );
+
+    if (!result.rows.length || !result.rows[0].is_active) {
+      return res.status(401).json({ message: 'User not found or deactivated.' });
+    }
+
+    req.user = result.rows[0];
     next();
-  } catch {
-    return res.status(401).json({ message: 'Not authorised. Invalid token.' });
+  } catch (err) {
+    return res.status(401).json({ message: 'Token invalid or expired.' });
   }
 };
 
