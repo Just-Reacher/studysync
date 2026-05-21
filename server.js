@@ -104,6 +104,7 @@ app.use('/api/email',     emailRoutes);
 ══════════════════════════════ */
 const htmlDir = path.join(__dirname, 'public');
 
+app.get('/admin/login',            (req, res) => res.sendFile(path.join(htmlDir, 'admin-login.html')));
 app.get('/admin/dashboard',     (req, res) => res.sendFile(path.join(htmlDir, 'admin-dashboard.html')));
 app.get('/admin/users',         (req, res) => res.sendFile(path.join(htmlDir, 'admin-users.html')));
 app.get('/admin/users/:id',     (req, res) => res.sendFile(path.join(htmlDir, 'admin-user-detail.html')));
